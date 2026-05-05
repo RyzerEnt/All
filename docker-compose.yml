@@ -1,0 +1,12 @@
+services:
+  ryzer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/arm64
+    env_file:
+      - .env
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
