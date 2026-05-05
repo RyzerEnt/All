@@ -63,58 +63,58 @@
 :root {
   --button-outline: rgba(255,255,255, .10);
   --badge-outline: rgba(255,255,255, .05);
-  --opaque-button-border-intensity: 9; 
+  --opaque-button-border-intensity: 9;
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  --background: 240 10% 4%;
+  --background: 230 25% 5%;
   --foreground: 0 0% 98%;
-  --border: 240 10% 12%;
-  --card: 240 10% 6%;
+  --border: 230 25% 15%;
+  --card: 230 25% 8%;
   --card-foreground: 0 0% 98%;
-  --card-border: 240 10% 12%;
-  --sidebar: 240 10% 6%;
+  --card-border: 230 25% 15%;
+  --sidebar: 230 25% 7%;
   --sidebar-foreground: 0 0% 98%;
-  --sidebar-border: 240 10% 12%;
-  --sidebar-primary: 72 100% 50%;
-  --sidebar-primary-foreground: 240 10% 4%;
-  --sidebar-accent: 240 10% 12%;
+  --sidebar-border: 230 25% 15%;
+  --sidebar-primary: 220 90% 56%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-accent: 230 25% 15%;
   --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-ring: 72 100% 50%;
-  --popover: 240 10% 6%;
+  --sidebar-ring: 220 90% 56%;
+  --popover: 230 25% 8%;
   --popover-foreground: 0 0% 98%;
-  --popover-border: 240 10% 12%;
-  --primary: 72 100% 50%;
-  --primary-foreground: 240 10% 4%;
-  --secondary: 240 10% 12%;
+  --popover-border: 230 25% 15%;
+  --primary: 220 90% 56%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 230 25% 13%;
   --secondary-foreground: 0 0% 98%;
-  --muted: 240 10% 12%;
-  --muted-foreground: 240 5% 65%;
-  --accent: 72 100% 50%;
-  --accent-foreground: 240 10% 4%;
+  --muted: 230 25% 12%;
+  --muted-foreground: 230 10% 60%;
+  --accent: 25 95% 55%;
+  --accent-foreground: 0 0% 98%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
-  --input: 240 10% 16%;
-  --ring: 72 100% 50%;
-  --chart-1: 72 100% 50%;
-  --chart-2: 240 10% 50%;
-  --chart-3: 180 50% 50%;
-  --chart-4: 0 50% 50%;
-  --chart-5: 300 50% 50%;
+  --input: 230 25% 15%;
+  --ring: 220 90% 56%;
+  --chart-1: 220 90% 56%;
+  --chart-2: 25 95% 55%;
+  --chart-3: 140 70% 50%;
+  --chart-4: 280 60% 60%;
+  --chart-5: 340 70% 60%;
 
-  --app-font-sans: 'Inter', sans-serif;
+  --app-font-sans: system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
   --app-font-serif: Georgia, serif;
-  --app-font-mono: 'Space Mono', monospace;
-  --radius: .25rem;
-  
-  --shadow-2xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 1px 2px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 2px 4px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 4px 6px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00), 0px 8px 10px -1px hsl(202.8169 89.1213% 53.1373% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(202.8169 89.1213% 53.1373% / 0.00);
+  --app-font-mono: ui-monospace, 'Space Mono', monospace;
+  --radius: .5rem;
+
+  --shadow-2xs: 0px 2px 0px 0px hsl(230 25% 0% / 0.4);
+  --shadow-xs: 0px 2px 0px 0px hsl(230 25% 0% / 0.4);
+  --shadow-sm: 0px 2px 0px 0px hsl(230 25% 0% / 0.4), 0px 1px 2px -1px hsl(230 25% 0% / 0.4);
+  --shadow: 0px 2px 0px 0px hsl(230 25% 0% / 0.4), 0px 1px 2px -1px hsl(230 25% 0% / 0.4);
+  --shadow-md: 0px 2px 0px 0px hsl(230 25% 0% / 0.4), 0px 2px 4px -1px hsl(230 25% 0% / 0.4);
+  --shadow-lg: 0px 2px 0px 0px hsl(230 25% 0% / 0.4), 0px 4px 6px -1px hsl(230 25% 0% / 0.4);
+  --shadow-xl: 0px 2px 0px 0px hsl(230 25% 0% / 0.4), 0px 8px 10px -1px hsl(230 25% 0% / 0.4);
+  --shadow-2xl: 0px 2px 0px 0px hsl(230 25% 0% / 0.4);
 
   --sidebar-primary-border: hsl(from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
   --sidebar-accent-border: hsl(from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
@@ -125,15 +125,12 @@
   --destructive-border: hsl(from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha);
 }
 
-.dark {
-  /* Same variables to force dark mode everywhere */
-}
-
 @layer base {
   * {
     @apply border-border;
   }
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased text-foreground;
+    background: #08090f;
   }
 }

@@ -4,12 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AppLayout } from "@/components/layout";
 import { DEFAULT_SPORTS, loadMultipliers, computeCalories } from "@/lib/calc-store";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Flame, Activity, Timer, TrendingUp, Mountain, Dumbbell } from "lucide-react";
 import type { CalcResult } from "@/lib/calc-store";
 
 const calcSchema = z.object({
@@ -23,10 +17,49 @@ const calcSchema = z.object({
 
 type CalcFormValues = z.infer<typeof calcSchema>;
 
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  height: 52,
+  background: "rgba(255,255,255,0.05)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  borderRadius: 10,
+  padding: "0 1rem",
+  fontSize: "1.1rem",
+  fontWeight: 700,
+  color: "#fff",
+  outline: "none",
+  fontFamily: "inherit",
+  transition: "border-color 0.2s, box-shadow 0.2s",
+  boxSizing: "border-box",
+};
+
+const labelStyle: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "0.4rem",
+  fontSize: "0.65rem",
+  fontWeight: 700,
+  letterSpacing: "0.09em",
+  textTransform: "uppercase",
+  color: "rgba(255,255,255,0.45)",
+  marginBottom: "0.5rem",
+};
+
+function Field({ label, error, children }: { label: React.ReactNode; error?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label style={labelStyle}>{label}</label>
+      {children}
+      {error && <p style={{ fontSize: "0.75rem", color: "#f87171", marginTop: "0.3rem" }}>{error}</p>}
+    </div>
+  );
+}
+
 export default function CalculatorPage() {
   const [result, setResult] = React.useState<CalcResult | null>(null);
+  const [focused, setFocused] = React.useState<string | null>(null);
 
-  const form = useForm<CalcFormValues>({
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<CalcFormValues>({
     resolver: zodResolver(calcSchema),
     defaultValues: {
       durationMinutes: 60,
@@ -37,7 +70,7 @@ export default function CalculatorPage() {
     },
   });
 
-  const sportId = form.watch("sportId");
+  const sportId = Number(watch("sportId"));
   const selectedSport = DEFAULT_SPORTS.find((s) => s.id === sportId);
 
   const onSubmit = (data: CalcFormValues) => {
@@ -58,247 +91,283 @@ export default function CalculatorPage() {
     setResult(res);
   };
 
+  const focusStyle = (name: string): React.CSSProperties =>
+    focused === name
+      ? { ...inputStyle, borderColor: "rgba(37,99,235,0.6)", boxShadow: "0 0 0 3px rgba(37,99,235,0.15)" }
+      : inputStyle;
+
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-6 max-w-5xl">
-        <div className="flex flex-col lg:flex-row gap-6">
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "2.5rem 1.25rem", width: "100%" }}>
+
+        {/* HEADER */}
+        <div style={{ marginBottom: "2.5rem" }}>
+          <p style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563eb", marginBottom: "0.5rem" }}>
+            Performance
+          </p>
+          <h1 style={{ fontSize: "clamp(2rem,6vw,3.5rem)", fontWeight: 900, letterSpacing: "-0.035em", lineHeight: 1, textTransform: "uppercase", color: "#fff", margin: 0 }}>
+            CALCULATEUR<br />
+            <span style={{ background: "linear-gradient(90deg,#2563eb,#f97316)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              RYZER POINTS
+            </span>
+          </h1>
+          <p style={{ fontSize: "0.95rem", color: "rgba(255,255,255,0.5)", fontWeight: 300, marginTop: "0.875rem", maxWidth: 480, lineHeight: 1.6 }}>
+            Renseigne tes métriques pour obtenir tes Ryzer Points — la mesure de ta dépense d'effort.
+          </p>
+        </div>
+
+        <div style={{ display: "flex", gap: "1.5rem", alignItems: "flex-start", flexWrap: "wrap" }}>
 
           {/* FORM */}
-          <div className="flex-1 min-w-0">
-            <Card className="border-border">
-              <CardHeader className="pb-4">
-                <CardTitle className="text-xl font-mono uppercase tracking-wider flex items-center gap-2">
-                  <Activity className="h-5 w-5 text-primary shrink-0" />
-                  Performance Input
-                </CardTitle>
-                <CardDescription>
-                  Renseignez vos métriques pour calculer la dépense énergétique.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Form {...form}>
-                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <div style={{ flex: "1 1 360px", minWidth: 0 }}>
+            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: "1.75rem", backdropFilter: "blur(8px)" }}>
 
-                    <FormField
-                      control={form.control}
-                      name="sportId"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-muted-foreground uppercase text-xs font-bold tracking-wider">
-                            Sport
-                          </FormLabel>
-                          <FormControl>
-                            <select
-                              className="w-full h-14 rounded-md border border-secondary bg-secondary/30 px-3 font-mono text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary cursor-pointer"
-                              value={field.value?.toString() || ""}
-                              onChange={(e) => field.onChange(Number(e.target.value))}
-                            >
-                              <option value="" disabled>-- Sélectionner un sport --</option>
-                              {DEFAULT_SPORTS.map((sport) => (
-                                <option key={sport.id} value={sport.id.toString()}>
-                                  {sport.icon} {sport.name} — MET {sport.baseMet}
-                                </option>
-                              ))}
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+              <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+
+                {/* SPORT */}
+                <Field label="Sport" error={errors.sportId?.message}>
+                  <select
+                    {...register("sportId")}
+                    style={{
+                      ...inputStyle,
+                      cursor: "pointer",
+                      appearance: "none",
+                      WebkitAppearance: "none",
+                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.4)' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
+                      backgroundRepeat: "no-repeat",
+                      backgroundPosition: "right 1rem center",
+                      paddingRight: "2.5rem",
+                    }}
+                  >
+                    <option value="" style={{ background: "#0d1117" }}>— Sélectionner un sport —</option>
+                    {DEFAULT_SPORTS.map((sport) => (
+                      <option key={sport.id} value={sport.id.toString()} style={{ background: "#0d1117" }}>
+                        {sport.icon} {sport.name} — MET {sport.baseMet}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+
+                {/* ROW 1: durée + FC */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                  <Field label="⏱ Durée (min)" error={errors.durationMinutes?.message}>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      {...register("durationMinutes")}
+                      style={focusStyle("durationMinutes")}
+                      onFocus={() => setFocused("durationMinutes")}
+                      onBlur={() => setFocused(null)}
                     />
+                  </Field>
+                  <Field label="♥ FC (bpm)" error={errors.heartRateBpm?.message}>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      {...register("heartRateBpm")}
+                      style={focusStyle("heartRateBpm")}
+                      onFocus={() => setFocused("heartRateBpm")}
+                      onBlur={() => setFocused(null)}
+                    />
+                  </Field>
+                </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="durationMinutes"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-muted-foreground uppercase text-xs font-bold tracking-wider flex items-center gap-1">
-                              <Timer className="h-3 w-3" /> Durée (min)
-                            </FormLabel>
-                            <FormControl>
-                              <Input type="number" inputMode="numeric" className="font-mono h-14 bg-secondary/30 text-lg border-secondary" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="heartRateBpm"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-muted-foreground uppercase text-xs font-bold tracking-wider flex items-center gap-1">
-                              <Activity className="h-3 w-3" /> FC (bpm)
-                            </FormLabel>
-                            <FormControl>
-                              <Input type="number" inputMode="numeric" className="font-mono h-14 bg-secondary/30 text-lg border-secondary" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="vo2Max"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-muted-foreground uppercase text-xs font-bold tracking-wider flex items-center gap-1">
-                              <TrendingUp className="h-3 w-3" /> VO2 Max
-                            </FormLabel>
-                            <FormControl>
-                              <Input type="number" inputMode="decimal" className="font-mono h-14 bg-secondary/30 text-lg border-secondary" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="weightKg"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-muted-foreground uppercase text-xs font-bold tracking-wider flex items-center gap-1">
-                              <Dumbbell className="h-3 w-3" /> Poids (kg)
-                            </FormLabel>
-                            <FormControl>
-                              <Input type="number" inputMode="decimal" className="font-mono h-14 bg-secondary/30 text-lg border-secondary" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                {/* ROW 2: VO2 + poids */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                  <Field label="↑ VO2 Max" error={errors.vo2Max?.message}>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      {...register("vo2Max")}
+                      style={focusStyle("vo2Max")}
+                      onFocus={() => setFocused("vo2Max")}
+                      onBlur={() => setFocused(null)}
+                    />
+                  </Field>
+                  <Field label="⚖ Poids (kg)" error={errors.weightKg?.message}>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      {...register("weightKg")}
+                      style={focusStyle("weightKg")}
+                      onFocus={() => setFocused("weightKg")}
+                      onBlur={() => setFocused(null)}
+                    />
+                  </Field>
+                </div>
+
+                {/* DÉNIVELÉ (conditionnel) */}
+                {selectedSport?.appliesElevation && (
+                  <Field label="⛰ Dénivelé (m)" error={errors.elevationGainMeters?.message}>
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      {...register("elevationGainMeters")}
+                      style={{
+                        ...focusStyle("elevationGainMeters"),
+                        borderColor: "rgba(249,115,22,0.4)",
+                        boxShadow: focused === "elevationGainMeters" ? "0 0 0 3px rgba(249,115,22,0.15)" : undefined,
+                      }}
+                      onFocus={() => setFocused("elevationGainMeters")}
+                      onBlur={() => setFocused(null)}
+                    />
+                  </Field>
+                )}
+
+                {/* RÉSULTAT MOBILE */}
+                {result && (
+                  <div style={{
+                    borderRadius: 16,
+                    border: "1px solid rgba(37,99,235,0.25)",
+                    background: "rgba(37,99,235,0.08)",
+                    padding: "1.25rem",
+                    textAlign: "center",
+                  }}
+                    className="lg:hidden"
+                  >
+                    <div style={{ fontSize: "3.5rem", fontWeight: 900, letterSpacing: "-0.04em", color: "#fff", lineHeight: 1 }}>
+                      {result.calories}
                     </div>
-
-                    {selectedSport?.appliesElevation && (
-                      <FormField
-                        control={form.control}
-                        name="elevationGainMeters"
-                        render={({ field }) => (
-                          <FormItem className="animate-in fade-in slide-in-from-top-4 duration-300">
-                            <FormLabel className="text-primary uppercase text-xs font-bold tracking-wider flex items-center gap-1">
-                              <Mountain className="h-3 w-3" /> Dénivelé (m)
-                            </FormLabel>
-                            <FormControl>
-                              <Input type="number" inputMode="numeric" className="font-mono h-14 bg-primary/10 text-primary border-primary/50 text-lg" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-
-                    {/* Résultat inline — mobile only */}
-                    {result && (
-                      <div className="lg:hidden animate-in zoom-in-95 duration-500 rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
-                        <div className="text-center">
-                          <div className="text-5xl font-black text-primary font-mono tracking-tighter">
-                            {result.calories}
-                          </div>
-                          <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground mt-1">
-                            Kcal brûlées
-                          </div>
-                        </div>
-                        <Separator className="bg-border/50" />
-                        <div className="grid grid-cols-2 gap-2 font-mono text-xs">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Base</span>
-                            <span className="font-bold">{result.breakdown.base}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">FC ×</span>
-                            <span className="font-bold">{result.breakdown.heartRateFactor}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">VO2 ×</span>
-                            <span className="font-bold">{result.breakdown.vo2Factor}</span>
-                          </div>
-                          {result.breakdown.elevationBonus > 0 && (
-                            <div className="flex justify-between text-primary col-span-2">
-                              <span>Dénivelé +</span>
-                              <span className="font-bold">{result.breakdown.elevationBonus}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    <Button
-                      type="submit"
-                      size="lg"
-                      className="w-full h-14 font-mono uppercase tracking-widest text-sm"
-                    >
-                      Calculer la dépense
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* RESULT PANEL — desktop */}
-          <div className="hidden lg:block w-[380px] shrink-0">
-            <Card className="h-full border-border bg-secondary/10 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                <Activity className="h-48 w-48" />
-              </div>
-              <CardHeader>
-                <CardTitle className="text-xl font-mono uppercase tracking-wider text-muted-foreground">
-                  Résultat
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="relative z-10 flex flex-col justify-center min-h-[300px]">
-                {!result ? (
-                  <div className="text-center text-muted-foreground opacity-50 flex flex-col items-center justify-center py-12">
-                    <Flame className="h-16 w-16 mb-4" />
-                    <p className="font-mono text-sm uppercase">En attente</p>
-                  </div>
-                ) : (
-                  <div className="animate-in zoom-in-95 duration-500 space-y-8">
-                    <div className="text-center">
-                      <div className="text-8xl font-black text-primary font-mono tracking-tighter">
-                        {result.calories}
-                      </div>
-                      <div className="text-sm font-mono uppercase tracking-widest text-muted-foreground mt-2">
-                        Kcal brûlées
-                      </div>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", marginTop: "0.5rem", background: "rgba(37,99,235,0.15)", border: "1px solid rgba(37,99,235,0.3)", borderRadius: 999, padding: "0.2rem 0.75rem" }}>
+                      <span style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563eb" }}>Ryzer Points</span>
                     </div>
-                    <Separator className="bg-border" />
-                    <div className="space-y-3 font-mono text-sm">
-                      <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                        Détail des facteurs
-                      </h4>
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Base (MET × poids × temps)</span>
-                        <span className="font-bold">{result.breakdown.base}</span>
+                    <div style={{ marginTop: "1rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", fontSize: "0.75rem", color: "rgba(255,255,255,0.5)" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>Base</span><span style={{ color: "#fff", fontWeight: 700 }}>{result.breakdown.base}</span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Facteur FC</span>
-                        <span className="font-bold">×{result.breakdown.heartRateFactor}</span>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>FC ×</span><span style={{ color: "#fff", fontWeight: 700 }}>{result.breakdown.heartRateFactor}</span>
                       </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Facteur VO2</span>
-                        <span className="font-bold">×{result.breakdown.vo2Factor}</span>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>VO2 ×</span><span style={{ color: "#fff", fontWeight: 700 }}>{result.breakdown.vo2Factor}</span>
                       </div>
                       {result.breakdown.elevationBonus > 0 && (
-                        <div className="flex justify-between items-center text-primary">
-                          <span>Bonus dénivelé</span>
-                          <span className="font-bold">+{result.breakdown.elevationBonus}</span>
+                        <div style={{ display: "flex", justifyContent: "space-between", color: "#f97316" }}>
+                          <span>Dénivelé +</span><span style={{ fontWeight: 700 }}>{result.breakdown.elevationBonus}</span>
                         </div>
                       )}
-                      <Separator className="bg-border/50 my-2" />
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Durée</span>
-                        <span className="font-bold">{result.breakdown.durationHours}h</span>
-                      </div>
                     </div>
                   </div>
                 )}
-              </CardContent>
-            </Card>
+
+                {/* CTA */}
+                <button
+                  type="submit"
+                  style={{
+                    width: "100%",
+                    height: 56,
+                    background: "#2563eb",
+                    color: "#fff",
+                    fontWeight: 800,
+                    fontSize: "0.85rem",
+                    letterSpacing: "0.1em",
+                    textTransform: "uppercase",
+                    border: "none",
+                    borderRadius: 999,
+                    cursor: "pointer",
+                    boxShadow: "0 0 32px rgba(37,99,235,0.35)",
+                    transition: "transform 0.15s, box-shadow 0.15s",
+                    fontFamily: "inherit",
+                  }}
+                  onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.02)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 40px rgba(37,99,235,0.5)"; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 32px rgba(37,99,235,0.35)"; }}
+                >
+                  Calculer mes Ryzer Points
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* RÉSULTAT DESKTOP */}
+          <div style={{ width: 360, flexShrink: 0 }} className="hidden lg:block">
+            <div style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 20,
+              padding: "1.75rem",
+              minHeight: 420,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              position: "relative",
+              overflow: "hidden",
+            }}>
+              {/* Glow bg */}
+              <div style={{ position: "absolute", top: -60, right: -60, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle,rgba(37,99,235,0.12) 0%,transparent 70%)", pointerEvents: "none" }} />
+
+              {!result ? (
+                <div style={{ textAlign: "center", padding: "2rem 0" }}>
+                  <div style={{ fontSize: "4rem", marginBottom: "1rem", opacity: 0.15 }}>⚡</div>
+                  <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)" }}>
+                    En attente
+                  </p>
+                  <p style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.15)", marginTop: "0.5rem" }}>
+                    Lance le calcul pour voir tes Ryzer Points
+                  </p>
+                </div>
+              ) : (
+                <div style={{ position: "relative", zIndex: 1 }}>
+                  <p style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563eb", marginBottom: "1.25rem" }}>
+                    Résultat
+                  </p>
+
+                  <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+                    <div style={{ fontSize: "5.5rem", fontWeight: 900, letterSpacing: "-0.05em", lineHeight: 1, color: "#fff" }}>
+                      {result.calories}
+                    </div>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", marginTop: "0.75rem", background: "rgba(37,99,235,0.15)", border: "1px solid rgba(37,99,235,0.35)", borderRadius: 999, padding: "0.3rem 1rem" }}>
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2563eb", display: "inline-block", boxShadow: "0 0 8px #2563eb" }} />
+                      <span style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#2563eb" }}>Ryzer Points</span>
+                    </div>
+                  </div>
+
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "1.25rem" }}>
+                    <p style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", marginBottom: "1rem" }}>
+                      Détail des facteurs
+                    </p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem", fontSize: "0.82rem" }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ color: "rgba(255,255,255,0.45)" }}>Base (MET × poids × temps)</span>
+                        <span style={{ fontWeight: 700, color: "#fff" }}>{result.breakdown.base}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ color: "rgba(255,255,255,0.45)" }}>Facteur FC</span>
+                        <span style={{ fontWeight: 700, color: "#fff" }}>×{result.breakdown.heartRateFactor}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ color: "rgba(255,255,255,0.45)" }}>Facteur VO2</span>
+                        <span style={{ fontWeight: 700, color: "#fff" }}>×{result.breakdown.vo2Factor}</span>
+                      </div>
+                      {result.breakdown.elevationBonus > 0 && (
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span style={{ color: "#f97316" }}>Bonus dénivelé</span>
+                          <span style={{ fontWeight: 700, color: "#f97316" }}>+{result.breakdown.elevationBonus}</span>
+                        </div>
+                      )}
+                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "0.65rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ color: "rgba(255,255,255,0.45)" }}>Durée</span>
+                        <span style={{ fontWeight: 700, color: "#fff" }}>{result.breakdown.durationHours}h</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
         </div>
       </div>
+
+      <style>{`
+        @media (min-width: 1024px) {
+          .hidden.lg\\:block { display: block !important; }
+          .lg\\:hidden { display: none !important; }
+        }
+        select option { background: #0d1117; color: #fff; }
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+      `}</style>
     </AppLayout>
   );
 }
