@@ -49,7 +49,7 @@ export default function Admin() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 selection:bg-primary/30">
       <div className="absolute top-8 left-8">
         <Link href="/" className="opacity-70 hover:opacity-100 transition-opacity">
-          <img src="/logo-bw.png" alt="Ryzer" className="h-8 object-contain" />
+          <img src="/logo-bw.png" alt="Ryzer" className="h-8 object-contain rounded-xl" />
         </Link>
       </div>
 
