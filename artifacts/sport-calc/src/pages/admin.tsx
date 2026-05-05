@@ -1,189 +1,39 @@
 import React from "react";
 import { AppLayout } from "@/components/layout";
 import {
-  useGetCalcSummary,
-  useListSports,
-  useListMultipliers,
-  useCreateSport,
-  useUpdateSport,
-  useDeleteSport,
-  useUpdateMultiplier,
-  getGetCalcSummaryQueryKey,
-  getListSportsQueryKey,
-  getListMultipliersQueryKey,
-} from "@workspace/api-client-react";
+  DEFAULT_SPORTS,
+  loadMultipliers,
+  saveMultipliers,
+  resetMultipliers,
+  type Multiplier,
+} from "@/lib/calc-store";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Switch } from "@/components/ui/switch";
-import { useQueryClient } from "@tanstack/react-query";
+import { Badge } from "@/components/ui/badge";
+import { Activity, Dumbbell, Settings, Mountain, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, Dumbbell, Settings, Edit, Trash2, Plus, Mountain } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-const sportSchema = z.object({
-  name: z.string().min(1),
-  slug: z.string().min(1),
-  baseMet: z.coerce.number().min(0.1),
-  icon: z.string().min(1),
-  appliesElevation: z.boolean(),
-});
-
-type SportFormValues = z.infer<typeof sportSchema>;
-
-function SportFormDialog({
-  sport,
-  open,
-  setOpen,
+function MultiplierCard({
+  multiplier,
+  onChange,
 }: {
-  sport?: any;
-  open: boolean;
-  setOpen: (v: boolean) => void;
+  multiplier: Multiplier;
+  onChange: (key: string, value: number) => void;
 }) {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const createSport = useCreateSport();
-  const updateSport = useUpdateSport();
-
-  const form = useForm<SportFormValues>({
-    resolver: zodResolver(sportSchema),
-    defaultValues: sport || {
-      name: "",
-      slug: "",
-      baseMet: 5,
-      icon: "🏃",
-      appliesElevation: false,
-    },
-  });
-
-  const onSubmit = (data: SportFormValues) => {
-    if (sport) {
-      updateSport.mutate(
-        { id: sport.id, data },
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: getListSportsQueryKey() });
-            queryClient.invalidateQueries({ queryKey: getGetCalcSummaryQueryKey() });
-            toast({ title: "Sport mis à jour" });
-            setOpen(false);
-          },
-        }
-      );
-    } else {
-      createSport.mutate(
-        { data },
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: getListSportsQueryKey() });
-            queryClient.invalidateQueries({ queryKey: getGetCalcSummaryQueryKey() });
-            toast({ title: "Sport créé" });
-            setOpen(false);
-            form.reset();
-          },
-        }
-      );
-    }
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="font-mono bg-card border-border w-[calc(100vw-2rem)] max-w-md rounded-xl">
-        <DialogHeader>
-          <DialogTitle className="uppercase tracking-wider">
-            {sport ? "Modifier le sport" : "Nouveau sport"}
-          </DialogTitle>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField control={form.control} name="name" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nom</FormLabel>
-                <FormControl>
-                  <Input className="bg-secondary/50 border-secondary h-12" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-            <FormField control={form.control} name="slug" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Slug</FormLabel>
-                <FormControl>
-                  <Input className="bg-secondary/50 border-secondary h-12" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField control={form.control} name="baseMet" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>MET base</FormLabel>
-                  <FormControl>
-                    <Input type="number" step="0.1" inputMode="decimal" className="bg-secondary/50 border-secondary h-12" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-              <FormField control={form.control} name="icon" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Icône</FormLabel>
-                  <FormControl>
-                    <Input className="bg-secondary/50 border-secondary h-12 text-xl" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
-            </div>
-            <FormField control={form.control} name="appliesElevation" render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border p-4">
-                <div>
-                  <FormLabel className="text-sm">Dénivelé applicable</FormLabel>
-                  <p className="text-xs text-muted-foreground mt-0.5">Course, vélo, randonnée…</p>
-                </div>
-                <FormControl>
-                  <Switch checked={field.value} onCheckedChange={field.onChange} />
-                </FormControl>
-              </FormItem>
-            )} />
-            <div className="flex justify-end pt-2">
-              <Button
-                type="submit"
-                size="lg"
-                className="uppercase tracking-widest text-xs w-full"
-                disabled={createSport.isPending || updateSport.isPending}
-              >
-                Enregistrer
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function MultiplierCard({ multiplier }: { multiplier: any }) {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const updateMultiplier = useUpdateMultiplier();
   const [val, setVal] = React.useState(multiplier.value.toString());
 
-  const handleSave = () => {
+  React.useEffect(() => {
+    setVal(multiplier.value.toString());
+  }, [multiplier.value]);
+
+  const handleBlur = () => {
     const num = parseFloat(val);
-    if (isNaN(num)) return;
-    updateMultiplier.mutate(
-      { id: multiplier.id, data: { value: num } },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListMultipliersQueryKey() });
-          toast({ title: "Multiplicateur mis à jour" });
-        },
-      }
-    );
+    if (!isNaN(num) && num >= multiplier.min && num <= multiplier.max) {
+      onChange(multiplier.key, num);
+    } else {
+      setVal(multiplier.value.toString());
+    }
   };
 
   return (
@@ -192,64 +42,51 @@ function MultiplierCard({ multiplier }: { multiplier: any }) {
         <div className="min-w-0">
           <div className="font-mono font-bold text-sm text-foreground">{multiplier.label}</div>
           <div className="text-xs text-muted-foreground mt-0.5">{multiplier.description}</div>
-          <div className="text-xs text-muted-foreground/60 font-mono mt-1">{multiplier.paramKey}</div>
         </div>
         <div className="text-xs text-muted-foreground font-mono shrink-0 mt-1">
-          [{multiplier.minValue} – {multiplier.maxValue}]
+          [{multiplier.min} – {multiplier.max}]
         </div>
       </div>
       <div className="flex items-center gap-2">
         <Input
           type="number"
-          step="0.001"
+          step={multiplier.step}
           inputMode="decimal"
+          min={multiplier.min}
+          max={multiplier.max}
           className="flex-1 font-mono h-11 text-right bg-secondary/50 border-secondary text-lg"
           value={val}
           onChange={(e) => setVal(e.target.value)}
+          onBlur={handleBlur}
         />
-        <span className="text-xs text-muted-foreground font-mono w-14 shrink-0">{multiplier.unit}</span>
-        <Button
-          size="sm"
-          variant="secondary"
-          className="h-11 px-4 uppercase text-[10px] tracking-wider shrink-0"
-          onClick={handleSave}
-          disabled={updateMultiplier.isPending}
-        >
-          {updateMultiplier.isPending ? "…" : "Sauv."}
-        </Button>
+        <span className="text-xs text-muted-foreground font-mono w-20 shrink-0 text-right">
+          {multiplier.unit}
+        </span>
       </div>
     </div>
   );
 }
 
 export default function AdminDashboard() {
-  const { data: summary, isLoading: isLoadingSummary } = useGetCalcSummary({
-    query: { queryKey: getGetCalcSummaryQueryKey() },
-  });
-  const { data: sports } = useListSports({ query: { queryKey: getListSportsQueryKey() } });
-  const { data: multipliers } = useListMultipliers({ query: { queryKey: getListMultipliersQueryKey() } });
-
-  const deleteSport = useDeleteSport();
-  const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [multipliers, setMultipliers] = React.useState<Multiplier[]>(loadMultipliers);
 
-  const [createOpen, setCreateOpen] = React.useState(false);
-  const [editSport, setEditSport] = React.useState<any>(null);
-
-  const handleDeleteSport = (id: number) => {
-    if (confirm("Supprimer ce sport ?")) {
-      deleteSport.mutate(
-        { id },
-        {
-          onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: getListSportsQueryKey() });
-            queryClient.invalidateQueries({ queryKey: getGetCalcSummaryQueryKey() });
-            toast({ title: "Sport supprimé" });
-          },
-        }
-      );
-    }
+  const handleChange = (key: string, value: number) => {
+    setMultipliers((prev) => {
+      const updated = prev.map((m) => (m.key === key ? { ...m, value } : m));
+      saveMultipliers(updated);
+      return updated;
+    });
+    toast({ title: "Paramètre mis à jour", description: `${key} = ${value}` });
   };
+
+  const handleReset = () => {
+    resetMultipliers();
+    setMultipliers(loadMultipliers());
+    toast({ title: "Réinitialisé", description: "Valeurs par défaut restaurées" });
+  };
+
+  const avgMet = DEFAULT_SPORTS.reduce((s, sp) => s + sp.baseMet, 0) / DEFAULT_SPORTS.length;
 
   return (
     <AppLayout>
@@ -264,9 +101,7 @@ export default function AdminDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="px-3 pb-3">
-              <div className="text-3xl font-bold font-mono text-primary">
-                {isLoadingSummary ? "-" : summary?.totalSports}
-              </div>
+              <div className="text-3xl font-bold font-mono text-primary">{DEFAULT_SPORTS.length}</div>
             </CardContent>
           </Card>
           <Card className="border-border bg-card">
@@ -276,9 +111,7 @@ export default function AdminDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="px-3 pb-3">
-              <div className="text-3xl font-bold font-mono text-primary">
-                {isLoadingSummary ? "-" : summary?.totalMultipliers}
-              </div>
+              <div className="text-3xl font-bold font-mono text-primary">{multipliers.length}</div>
             </CardContent>
           </Card>
           <Card className="border-border bg-card">
@@ -288,33 +121,22 @@ export default function AdminDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="px-3 pb-3">
-              <div className="text-3xl font-bold font-mono text-primary">
-                {isLoadingSummary ? "-" : summary?.avgMet.toFixed(1)}
-              </div>
+              <div className="text-3xl font-bold font-mono text-primary">{avgMet.toFixed(1)}</div>
             </CardContent>
           </Card>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          {/* SPORTS */}
+          {/* SPORTS LIST (lecture seule) */}
           <Card className="border-border bg-card overflow-hidden">
-            <CardHeader className="border-b border-border/50 bg-secondary/10 flex flex-row items-center justify-between py-3 px-4">
-              <div>
-                <CardTitle className="font-mono uppercase tracking-wider text-base">Sports</CardTitle>
-                <CardDescription className="text-xs">Activités et valeurs MET</CardDescription>
-              </div>
-              <Button
-                size="sm"
-                onClick={() => setCreateOpen(true)}
-                className="uppercase font-mono text-[10px] tracking-wider h-10 px-3"
-              >
-                <Plus className="h-3 w-3 mr-1" /> Ajouter
-              </Button>
+            <CardHeader className="border-b border-border/50 bg-secondary/10 py-3 px-4">
+              <CardTitle className="font-mono uppercase tracking-wider text-base">Sports disponibles</CardTitle>
+              <CardDescription className="text-xs">Liste fixe — modifiable dans le code source</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-border/50">
-                {sports?.map((sport) => (
+                {DEFAULT_SPORTS.map((sport) => (
                   <div key={sport.id} className="flex items-center gap-3 px-4 py-3">
                     <span className="text-2xl shrink-0">{sport.icon}</span>
                     <div className="flex-1 min-w-0">
@@ -328,64 +150,38 @@ export default function AdminDashboard() {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-10 w-10 text-muted-foreground hover:text-primary"
-                        onClick={() => setEditSport(sport)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-10 w-10 text-muted-foreground hover:text-destructive"
-                        onClick={() => handleDeleteSport(sport.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
                   </div>
                 ))}
-                {sports?.length === 0 && (
-                  <div className="text-center py-10 text-muted-foreground font-mono text-xs uppercase">
-                    Aucun sport défini
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>
 
-          {/* MULTIPLIERS */}
+          {/* MULTIPLIERS (modifiables, sauvegardés en localStorage) */}
           <Card className="border-border bg-card overflow-hidden">
-            <CardHeader className="border-b border-border/50 bg-secondary/10 py-3 px-4">
-              <CardTitle className="font-mono uppercase tracking-wider text-base">Multiplicateurs</CardTitle>
-              <CardDescription className="text-xs">Paramètres de l'algorithme calorique</CardDescription>
+            <CardHeader className="border-b border-border/50 bg-secondary/10 py-3 px-4 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="font-mono uppercase tracking-wider text-base">Multiplicateurs</CardTitle>
+                <CardDescription className="text-xs">Sauvegardés dans le navigateur</CardDescription>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-9 text-muted-foreground hover:text-foreground text-xs"
+                onClick={handleReset}
+              >
+                <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                Reset
+              </Button>
             </CardHeader>
             <CardContent className="p-0">
-              {multipliers?.map((m) => (
-                <MultiplierCard key={m.id} multiplier={m} />
+              {multipliers.map((m) => (
+                <MultiplierCard key={m.key} multiplier={m} onChange={handleChange} />
               ))}
-              {multipliers?.length === 0 && (
-                <div className="text-center py-10 text-muted-foreground font-mono text-xs uppercase">
-                  Aucun multiplicateur
-                </div>
-              )}
             </CardContent>
           </Card>
 
         </div>
       </div>
-
-      {createOpen && <SportFormDialog open={createOpen} setOpen={setCreateOpen} />}
-      {editSport && (
-        <SportFormDialog
-          open={!!editSport}
-          setOpen={(v) => !v && setEditSport(null)}
-          sport={editSport}
-        />
-      )}
     </AppLayout>
   );
 }
