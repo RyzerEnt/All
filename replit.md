@@ -1,27 +1,50 @@
-# Workspace
+# Ryzer - Site Vitrine
 
-## Overview
+## Architecture
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+Monorepo pnpm avec 3 artifacts :
 
-## Stack
+- **ryzer-site** (`artifacts/ryzer-site/`) — Site vitrine React + Vite + Tailwind CSS, servi sur `/` (port 25115)
+- **api-server** (`artifacts/api-server/`) — API Express.js, servie sur `/api` (port 8080)
+- **mockup-sandbox** (`artifacts/mockup-sandbox/`) — Sandbox de design, servi sur `/__mockup`
 
-- **Monorepo tool**: pnpm workspaces
-- **Node.js version**: 24
-- **Package manager**: pnpm
-- **TypeScript version**: 5.9
-- **API framework**: Express 5
-- **Database**: PostgreSQL + Drizzle ORM
-- **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
-- **Build**: esbuild (CJS bundle)
+## Bibliothèques partagées (`lib/`)
 
-## Key Commands
+- **@workspace/db** — Schéma Drizzle ORM + connexion PostgreSQL
+- **@workspace/api-spec** — Spec OpenAPI + codegen Orval
+- **@workspace/api-zod** — Schémas Zod générés
+- **@workspace/api-client-react** — Hooks React Query générés
 
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- `pnpm --filter @workspace/api-server run dev` — run API server locally
+## Base de données
 
-See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details.
+PostgreSQL provisionné via Replit. Variables d'environnement : `DATABASE_URL`, `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`.
+
+Schéma : table `roadmap_items` (id, title, description, status, quarter, sort_order, created_at, updated_at).
+
+Migration : `pnpm --filter @workspace/db run push`
+
+## Authentification
+
+JWT simple avec admin unique. Credentials stockés dans les variables d'environnement :
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+- `JWT_SECRET`
+
+## Routes API
+
+- `GET /api/healthz` — Health check
+- `POST /api/auth/login` — Connexion admin
+- `GET /api/roadmap` — Liste des items roadmap (public)
+- `POST /api/roadmap` — Créer un item (admin)
+- `PUT /api/roadmap/:id` — Mettre à jour un item (admin)
+- `DELETE /api/roadmap/:id` — Supprimer un item (admin)
+
+## Workflows
+
+- `artifacts/ryzer-site: web` — Frontend dev server
+- `artifacts/api-server: API Server` — Backend API server
+
+## Pages frontend
+
+- `/` — Page d'accueil (site vitrine)
+- `/admin` — Interface d'administration
