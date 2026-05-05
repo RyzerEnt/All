@@ -73,14 +73,14 @@ export default function Home() {
             ))}
           </ul>
 
-          <a href="#cta" style={{
+          <a href="#roadmap" style={{
             background: scrolled ? "#2563eb" : "#fff",
             color: scrolled ? "#fff" : "#0f172a",
             fontWeight: 700, fontSize: "0.8rem",
             padding: "0.55rem 1.25rem", borderRadius: 999,
             textDecoration: "none", transition: "all 0.3s",
             display: "none",
-          }} className="md-show">Télécharger</a>
+          }} className="md-show">Roadmap</a>
 
           {/* Hamburger */}
           <button
