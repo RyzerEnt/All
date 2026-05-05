@@ -230,6 +230,35 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ═══ APPAREILS ═══ */}
+      <section id="appareils" style={{ padding: "5rem 0", background: "#fff" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "3rem", alignItems: "center" }} className="feature-row">
+            <div>
+              <span style={{ display: "inline-flex", padding: "0.25rem 0.8rem", borderRadius: 999, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.2)", color: "#2563eb", marginBottom: "1.25rem" }}>Application montre connectée</span>
+              <h2 style={{ fontSize: "clamp(1.75rem,4vw,3rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "1rem", color: "#0f172a" }}>Tes métriques<br />sur ton poignet.</h2>
+              <p style={{ fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, marginBottom: "1.5rem", lineHeight: 1.7 }}>Laisse ton téléphone dans ton sac. L'application montre Ryzer te livre les données de performance essentielles en temps réel, sans latence, directement au poignet.</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                {[["⌚","Compatible Apple Watch, Garmin, Wear OS"],["📊","Fréquence cardiaque, VO2max, puissance, allure"],["🔋","Faible consommation de batterie"]].map(([icon, text]) => (
+                  <div key={text as string} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <span style={{ fontSize: "1.1rem" }}>{icon}</span>
+                    <span style={{ fontSize: "0.9rem", color: "rgba(15,23,42,0.65)" }}>{text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ position: "relative", textAlign: "center" }}>
+              <img
+                src="/smartwatch-athlete.jpg"
+                alt="Athlète avec montre connectée"
+                loading="lazy"
+                style={{ width: "100%", maxWidth: 480, margin: "0 auto", borderRadius: "1.5rem", boxShadow: "0 24px 60px rgba(0,0,0,0.12)", display: "block", objectFit: "cover", aspectRatio: "3/2" }}
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* ═══ FEATURES ═══ */}
       <section id="features" style={{ padding: "5rem 0", background: "#fff" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem" }}>
