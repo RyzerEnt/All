@@ -50,6 +50,12 @@ interface RoadmapItem {
   sortOrder: number;
 }
 
+interface WaitlistEntry {
+  id: number;
+  email: string;
+  createdAt: string;
+}
+
 const STATUS_LABELS: Record<string, string> = {
   planned: "Planifie",
   "in-progress": "En cours",
@@ -65,7 +71,10 @@ const STATUS_COLORS: Record<string, string> = {
 export default function Admin() {
   const { toast } = useToast();
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("admin_token"));
+  const [tab, setTab] = useState<"roadmap" | "waitlist">("roadmap");
   const [items, setItems] = useState<RoadmapItem[]>([]);
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<RoadmapItem | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -110,9 +119,28 @@ export default function Admin() {
     setItems(data);
   }
 
+  async function fetchWaitlist() {
+    setWaitlistLoading(true);
+    try {
+      const res = await fetch(`${API}/waitlist`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json() as WaitlistEntry[];
+      setWaitlist(data);
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de charger la waitlist", variant: "destructive" });
+    } finally {
+      setWaitlistLoading(false);
+    }
+  }
+
   useEffect(() => {
     if (token) fetchItems();
   }, [token]);
+
+  useEffect(() => {
+    if (token && tab === "waitlist") fetchWaitlist();
+  }, [token, tab]);
 
   async function onSubmitItem(data: ItemValues) {
     setLoading(true);
@@ -231,6 +259,20 @@ export default function Admin() {
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-10">
+        {/* Tabs */}
+        <div className="flex gap-1 mb-8 bg-white/5 rounded-xl p-1 w-fit">
+          {(["roadmap", "waitlist"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => { setTab(t); setShowForm(false); setEditing(null); }}
+              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === t ? "bg-primary text-white shadow" : "text-white/50 hover:text-white"}`}
+            >
+              {t === "roadmap" ? `Roadmap (${items.length})` : `Waitlist (${waitlist.length})`}
+            </button>
+          ))}
+        </div>
+
+        {tab === "roadmap" && (<>
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -354,6 +396,50 @@ export default function Admin() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+        </>)}
+
+        {tab === "waitlist" && (
+          <div>
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h1 className="text-2xl font-bold text-white">Waitlist</h1>
+                <p className="text-white/50 text-sm mt-1">{waitlist.length} inscription{waitlist.length !== 1 ? "s" : ""}</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={fetchWaitlist} disabled={waitlistLoading} className="border-white/10 text-white/70 hover:text-white rounded-xl text-xs">
+                {waitlistLoading ? "Chargement..." : "↻ Actualiser"}
+              </Button>
+            </div>
+
+            {waitlistLoading ? (
+              <div className="text-center py-20 text-white/30">Chargement...</div>
+            ) : waitlist.length === 0 ? (
+              <div className="text-center py-20 text-white/30">
+                <p className="text-lg">Aucune inscription pour le moment.</p>
+                <p className="text-sm mt-1">Les emails apparaîtront ici dès qu'un visiteur s'inscrit.</p>
+              </div>
+            ) : (
+              <div className="bg-card/40 border border-white/5 rounded-2xl overflow-hidden">
+                <div className="grid grid-cols-[auto_1fr_auto] gap-0 text-xs font-semibold text-white/30 uppercase tracking-widest px-5 py-3 border-b border-white/5">
+                  <span className="w-10">#</span>
+                  <span>Email</span>
+                  <span>Date d'inscription</span>
+                </div>
+                {waitlist.map((entry, i) => (
+                  <div
+                    key={entry.id}
+                    className="grid grid-cols-[auto_1fr_auto] gap-0 items-center px-5 py-3.5 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors"
+                  >
+                    <span className="w-10 text-white/20 text-sm font-mono">{i + 1}</span>
+                    <span className="text-white text-sm font-medium truncate">{entry.email}</span>
+                    <span className="text-white/40 text-xs ml-4 whitespace-nowrap">
+                      {new Date(entry.createdAt).toLocaleDateString("fr-FR", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </main>

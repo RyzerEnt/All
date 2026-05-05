@@ -1,7 +1,22 @@
 import { Router } from "express";
+import { desc } from "drizzle-orm";
 import { db, waitlistTable, waitlistEmailSchema } from "@workspace/db";
+import { requireAuth } from "../middleware/auth";
 
 const router = Router();
+
+router.get("/waitlist", requireAuth, async (req, res) => {
+  try {
+    const entries = await db
+      .select()
+      .from(waitlistTable)
+      .orderBy(desc(waitlistTable.createdAt));
+    res.json(entries);
+  } catch (err) {
+    req.log.error(err, "Failed to fetch waitlist");
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
 
 router.post("/waitlist", async (req, res) => {
   const parsed = waitlistEmailSchema.safeParse(req.body);
