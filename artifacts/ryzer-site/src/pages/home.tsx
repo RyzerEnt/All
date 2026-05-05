@@ -119,12 +119,21 @@ export default function Home() {
         display: "flex", alignItems: "center",
         background: "#08090f", overflow: "hidden",
       }}>
+        {/* Desktop image */}
         <img
           src="/hero-nature.png"
           alt="Coureur de trail en montagne"
+          className="hero-img-desktop"
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block", zIndex: 0 }}
         />
-        <div style={{ position: "absolute", inset: 0, zIndex: 1, background: "linear-gradient(to top, #ffffff 0%, rgba(7,8,15,0.5) 55%, rgba(7,8,15,0.22) 100%)" }} />
+        {/* Mobile portrait image */}
+        <img
+          src="/hero-nature-mobile.png"
+          alt="Coureur de trail en montagne"
+          className="hero-img-mobile"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "none", zIndex: 0 }}
+        />
+        <div style={{ position: "absolute", inset: 0, zIndex: 1, background: "linear-gradient(to top, #f1f5f9 0%, rgba(7,8,15,0.45) 50%, rgba(7,8,15,0.2) 100%)" }} />
         <div style={{ position: "relative", zIndex: 2, maxWidth: 1200, margin: "0 auto", padding: "5rem 1.25rem 0", width: "100%" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(249,115,22,0.15)", border: "1px solid rgba(249,115,22,0.35)", borderRadius: 999, padding: "0.3rem 0.9rem", marginBottom: "1.5rem" }}>
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#f97316", display: "inline-block", boxShadow: "0 0 8px #f97316" }} />
@@ -269,6 +278,14 @@ export default function Home() {
         @media (min-width: 720px) { .stats-grid { grid-template-columns: repeat(4,1fr); } }
         .feature-row { grid-template-columns: 1fr; }
         @media (min-width: 768px) { .feature-row { grid-template-columns: 1fr 1fr; gap: 5rem !important; } }
+
+        /* Hero image swap: mobile gets portrait, desktop gets landscape */
+        .hero-img-mobile { display: none !important; }
+        .hero-img-desktop { display: block !important; }
+        @media (max-width: 767px) {
+          .hero-img-mobile { display: block !important; }
+          .hero-img-desktop { display: none !important; }
+        }
       `}</style>
     </div>
   );
