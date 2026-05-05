@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
+import fs from "fs";
 
 const rawPort = process.env.PORT;
 
@@ -26,9 +27,30 @@ if (!basePath) {
   );
 }
 
+function serveHomeHtml(): import("vite").Plugin {
+  return {
+    name: "serve-home-html",
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const url = req.url ?? "/";
+        if (url === "/" || url === "") {
+          const htmlPath = path.resolve(import.meta.dirname, "public/home.html");
+          const html = fs.readFileSync(htmlPath, "utf-8");
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.setHeader("Cache-Control", "no-store");
+          res.end(html);
+          return;
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
   base: basePath,
   plugins: [
+    serveHomeHtml(),
     react(),
     tailwindcss(),
     runtimeErrorOverlay(),
