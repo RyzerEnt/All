@@ -196,7 +196,7 @@ export default function Home() {
           alt="Alpiniste au sommet en montagne"
           style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center center", display: "block", zIndex: 0 }}
         />
-        <div style={{ position: "absolute", inset: 0, zIndex: 1, background: "linear-gradient(to top, #f1f5f9 0%, rgba(7,8,15,0.45) 50%, rgba(7,8,15,0.2) 100%)" }} />
+        <div style={{ position: "absolute", inset: 0, zIndex: 1, background: "linear-gradient(to top, #08090f 0%, rgba(7,8,15,0.55) 50%, rgba(7,8,15,0.2) 100%)" }} />
         <div style={{ position: "relative", zIndex: 2, maxWidth: 1200, margin: "0 auto", padding: "5rem 1.25rem 0", width: "100%" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(249,115,22,0.15)", border: "1px solid rgba(249,115,22,0.35)", borderRadius: 999, padding: "0.3rem 0.9rem", marginBottom: "1.5rem" }}>
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#f97316", display: "inline-block", boxShadow: "0 0 8px #f97316" }} />
@@ -217,13 +217,13 @@ export default function Home() {
       </section>
 
       {/* ═══ STATS ═══ */}
-      <section id="stats" style={{ padding: "4.5rem 0", background: "#f1f5f9", borderTop: "1px solid rgba(15,23,42,0.08)" }}>
+      <section id="stats" style={{ padding: "4.5rem 0", background: "#0d1017", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "2rem" }} className="stats-grid">
             {[{v:"Bêta",l:"Phase actuelle"},{v:"2025",l:"Lancement visé"},{v:"Multi-sport",l:"Tous les sports"},{v:"iOS & Android",l:"Plateformes prévues"}].map(s => (
-              <div key={s.l} style={{ borderLeft: "2px solid rgba(37,99,235,0.3)", paddingLeft: "1.25rem" }}>
-                <div style={{ fontSize: "clamp(1.4rem,3vw,2rem)", fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1, marginBottom: "0.35rem", color: "#0f172a" }}>{s.v}</div>
-                <div style={{ fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "rgba(15,23,42,0.5)" }}>{s.l}</div>
+              <div key={s.l} style={{ borderLeft: "2px solid rgba(37,99,235,0.4)", paddingLeft: "1.25rem" }}>
+                <div style={{ fontSize: "clamp(1.4rem,3vw,2rem)", fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1, marginBottom: "0.35rem", color: "#fff" }}>{s.v}</div>
+                <div style={{ fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>{s.l}</div>
               </div>
             ))}
           </div>
@@ -231,18 +231,18 @@ export default function Home() {
       </section>
 
       {/* ═══ APPAREILS ═══ */}
-      <section id="appareils" style={{ padding: "5rem 0", background: "#fff" }}>
+      <section id="appareils" style={{ padding: "5rem 0", background: "#08090f", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "3rem", alignItems: "center" }} className="feature-row">
             <div>
-              <span style={{ display: "inline-flex", padding: "0.25rem 0.8rem", borderRadius: 999, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.2)", color: "#2563eb", marginBottom: "1.25rem" }}>Application montre connectée</span>
-              <h2 style={{ fontSize: "clamp(1.75rem,4vw,3rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "1rem", color: "#0f172a" }}>Tes métriques<br />sur ton poignet.</h2>
-              <p style={{ fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, marginBottom: "1.5rem", lineHeight: 1.7 }}>Laisse ton téléphone dans ton sac. L'application montre Ryzer te livre les données de performance essentielles en temps réel, sans latence, directement au poignet.</p>
+              <span style={{ display: "inline-flex", padding: "0.25rem 0.8rem", borderRadius: 999, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.3)", color: "#2563eb", marginBottom: "1.25rem" }}>Application montre connectée</span>
+              <h2 style={{ fontSize: "clamp(1.75rem,4vw,3rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "1rem", color: "#fff" }}>Tes métriques<br />sur ton poignet.</h2>
+              <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.5)", fontWeight: 300, marginBottom: "1.5rem", lineHeight: 1.7 }}>Laisse ton téléphone dans ton sac. L'application montre Ryzer te livre les données de performance essentielles en temps réel, sans latence, directement au poignet.</p>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                 {["Compatible Apple Watch, Garmin, Wear OS","Fréquence cardiaque, VO2max, puissance, allure","Faible consommation de batterie"].map((text) => (
                   <div key={text} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                     <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2563eb", flexShrink: 0, display: "inline-block" }} />
-                    <span style={{ fontSize: "0.9rem", color: "rgba(15,23,42,0.65)" }}>{text}</span>
+                    <span style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.55)" }}>{text}</span>
                   </div>
                 ))}
               </div>
@@ -252,7 +252,7 @@ export default function Home() {
                 src="/smartwatch-athlete.jpg"
                 alt="Athlète avec montre connectée"
                 loading="lazy"
-                style={{ width: "100%", maxWidth: 480, margin: "0 auto", borderRadius: "1.5rem", boxShadow: "0 24px 60px rgba(0,0,0,0.12)", display: "block", objectFit: "cover", aspectRatio: "3/2" }}
+                style={{ width: "100%", maxWidth: 480, margin: "0 auto", borderRadius: "1.5rem", boxShadow: "0 24px 60px rgba(0,0,0,0.5)", display: "block", objectFit: "cover", aspectRatio: "3/2" }}
               />
             </div>
           </div>
@@ -260,20 +260,20 @@ export default function Home() {
       </section>
 
       {/* ═══ FEATURES ═══ */}
-      <section id="features" style={{ padding: "5rem 0", background: "#fff" }}>
+      <section id="features" style={{ padding: "5rem 0", background: "#0d1017", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem" }}>
           <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563eb", marginBottom: "0.6rem" }}>Ce que nous construisons</p>
-          <h2 style={{ fontSize: "clamp(1.75rem,4vw,2.75rem)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: "0.6rem", color: "#0f172a" }}>Fonctionnalités</h2>
-          <p style={{ fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, maxWidth: 500, marginBottom: "3rem", lineHeight: 1.7 }}>Ryzer est conçu pour tous les athlètes, quel que soit leur sport, qui veulent aller plus loin.</p>
+          <h2 style={{ fontSize: "clamp(1.75rem,4vw,2.75rem)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: "0.6rem", color: "#fff" }}>Fonctionnalités</h2>
+          <p style={{ fontSize: "1rem", color: "rgba(255,255,255,0.45)", fontWeight: 300, maxWidth: 500, marginBottom: "3rem", lineHeight: 1.7 }}>Ryzer est conçu pour tous les athlètes, quel que soit leur sport, qui veulent aller plus loin.</p>
           {features.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "3rem", color: "rgba(15,23,42,0.3)" }}>Les fonctionnalités arrivent bientôt.</div>
+            <div style={{ textAlign: "center", padding: "3rem", color: "rgba(255,255,255,0.2)" }}>Les fonctionnalités arrivent bientôt.</div>
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: "1.25rem" }}>
               {features.map(f => (
-                <div key={f.id} style={{ background: "#f8fafc", border: "1px solid rgba(15,23,42,0.07)", borderRadius: "1.25rem", padding: "1.6rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <div key={f.id} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "1.25rem", padding: "1.6rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                   <span style={{ fontSize: "2rem", lineHeight: 1 }}>{f.emoji}</span>
-                  <div style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a" }}>{f.title}</div>
-                  {f.description && <div style={{ fontSize: "0.875rem", color: "rgba(15,23,42,0.55)", lineHeight: 1.6 }}>{f.description}</div>}
+                  <div style={{ fontSize: "1rem", fontWeight: 700, color: "#fff" }}>{f.title}</div>
+                  {f.description && <div style={{ fontSize: "0.875rem", color: "rgba(255,255,255,0.45)", lineHeight: 1.6 }}>{f.description}</div>}
                 </div>
               ))}
             </div>
