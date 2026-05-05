@@ -49,7 +49,7 @@ export default function Home() {
   });
 
   return (
-    <div style={{ fontFamily: "system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif", overflowX: "hidden", background: "#fff" }}>
+    <div style={{ fontFamily: "system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif", overflowX: "hidden", background: "#08090f" }}>
 
       {/* ═══ NAV ═══ */}
       <nav style={{
