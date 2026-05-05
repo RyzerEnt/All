@@ -1,238 +1,261 @@
-import React, { useEffect, useState } from "react";
-import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from "react";
+
+interface RoadmapItem {
+  id: number;
+  title: string;
+  description?: string;
+  status: "planned" | "in-progress" | "done";
+  quarter?: string;
+  sortOrder?: number;
+}
+
+const BADGE: Record<string, { bg: string; color: string; label: string }> = {
+  planned: { bg: "rgba(37,99,235,0.12)", color: "#2563eb", label: "Planifié" },
+  "in-progress": { bg: "rgba(249,115,22,0.12)", color: "#f97316", label: "En cours" },
+  done: { bg: "rgba(22,163,74,0.12)", color: "#16a34a", label: "Terminé" },
+};
 
 export default function Home() {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [roadmap, setRoadmap] = useState<RoadmapItem[]>([]);
+  const [roadmapLoading, setRoadmapLoading] = useState(true);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [menuOpen]);
+
+  useEffect(() => {
+    fetch("/api/roadmap")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setRoadmap(data); })
+      .catch(() => {})
+      .finally(() => setRoadmapLoading(false));
+  }, []);
+
+  const close = () => setMenuOpen(false);
+
+  const navLinkStyle = (base: string): React.CSSProperties => ({
+    fontSize: "0.875rem", fontWeight: 500,
+    color: scrolled ? "rgba(15,23,42,0.65)" : "rgba(255,255,255,0.88)",
+    textDecoration: "none", transition: "color 0.2s",
+  });
+
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-primary/30">
-      {/* Navigation */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? "bg-background/90 backdrop-blur-md border-b border-white/5 py-4" : "bg-transparent py-6"}`}>
-        <div className="container mx-auto px-6 md:px-12 flex items-center justify-between">
-          <Link href="/" className="block">
-            <img src="/logo-color.png" alt="Ryzer" className="h-8 md:h-10 object-contain rounded-xl" />
-          </Link>
-          <div className="flex items-center gap-6">
-            <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/80">
-              <a href="#features" className="hover:text-primary transition-colors">Fonctionnalites</a>
-              <a href="#athletes" className="hover:text-primary transition-colors">Athletes</a>
-              <a href="#stats" className="hover:text-primary transition-colors">Performance</a>
-            </div>
-            <Button className="bg-white text-background hover:bg-white/90 rounded-full px-6 font-bold tracking-tight">
-              Telecharger
-            </Button>
-          </div>
+    <div style={{ fontFamily: "system-ui,-apple-system,'Segoe UI',Helvetica,Arial,sans-serif", overflowX: "hidden", background: "#fff" }}>
+
+      {/* ═══ NAV ═══ */}
+      <nav style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 200,
+        padding: scrolled ? "0.875rem 0" : "1.25rem 0",
+        background: scrolled ? "rgba(255,255,255,0.96)" : "transparent",
+        backdropFilter: scrolled ? "blur(16px)" : "none",
+        WebkitBackdropFilter: scrolled ? "blur(16px)" : "none",
+        borderBottom: scrolled ? "1px solid rgba(15,23,42,0.1)" : "1px solid transparent",
+        transition: "all 0.3s",
+      }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <a href="/"><img src="/logo-color.png" alt="Ryzer" style={{ height: "2.25rem", borderRadius: 10, objectFit: "contain" }} /></a>
+
+          {/* Desktop links */}
+          <ul style={{ display: "flex", alignItems: "center", gap: "2rem", listStyle: "none", margin: 0, padding: 0 }}>
+            {[["#features","Fonctionnalités"],["#roadmap","Roadmap"],["#stats","Performance"]].map(([href, label]) => (
+              <li key={href} style={{ display: "none" }} className="md-show">
+                <a href={href} style={navLinkStyle("")}>{label}</a>
+              </li>
+            ))}
+          </ul>
+
+          <a href="#cta" style={{
+            background: scrolled ? "#2563eb" : "#fff",
+            color: scrolled ? "#fff" : "#0f172a",
+            fontWeight: 700, fontSize: "0.8rem",
+            padding: "0.55rem 1.25rem", borderRadius: 999,
+            textDecoration: "none", transition: "all 0.3s",
+            display: "none",
+          }} className="md-show">Télécharger</a>
+
+          {/* Hamburger */}
+          <button
+            onClick={() => setMenuOpen(true)}
+            aria-label="Ouvrir le menu"
+            style={{ background: "none", border: "none", cursor: "pointer", display: "flex", flexDirection: "column", gap: 5, padding: 4 }}
+            className="md-hide"
+          >
+            {[0,1,2].map(i => (
+              <span key={i} style={{ display: "block", width: 22, height: 2, background: scrolled ? "#0f172a" : "#fff", borderRadius: 2, transition: "background 0.3s" }} />
+            ))}
+          </button>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative min-h-[100dvh] flex items-center pt-20">
-        <div className="absolute inset-0 z-0">
-          <img
-            src="/hero-nature.png"
-            alt="Coureur de trail en montagne"
-            className="w-full h-full object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-background/20" />
-        </div>
+      {/* ═══ MOBILE DRAWER ═══ */}
+      <div style={{
+        position: "fixed", inset: 0, zIndex: 300,
+        background: "rgba(7,8,15,0.98)",
+        display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center", gap: "2rem",
+        opacity: menuOpen ? 1 : 0,
+        pointerEvents: menuOpen ? "auto" : "none",
+        transition: "opacity 0.25s",
+      }}>
+        <button onClick={close} aria-label="Fermer" style={{ position: "absolute", top: "1.5rem", right: "1.5rem", background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.6)", fontSize: "1.75rem", lineHeight: 1 }}>✕</button>
+        {[["#features","Fonctionnalités"],["#roadmap","Roadmap"],["#stats","Performance"]].map(([href, label]) => (
+          <a key={href} href={href} onClick={close} style={{ fontSize: "1.75rem", fontWeight: 800, color: "rgba(255,255,255,0.88)", textDecoration: "none", letterSpacing: "-0.02em" }}>{label}</a>
+        ))}
+        <a href="#cta" onClick={close} style={{ background: "#2563eb", color: "#fff", fontWeight: 700, fontSize: "1rem", padding: "0.9rem 2.5rem", borderRadius: 999, textDecoration: "none", marginTop: "0.5rem" }}>Télécharger</a>
+      </div>
 
-        <div className="container relative z-10 mx-auto px-6 md:px-12">
-          <div className="max-w-3xl">
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter text-white leading-[1.1] mb-8">
-              CONQUIERS <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">LE SOMMET.</span>
-            </h1>
-            <p className="text-lg md:text-2xl text-white/80 font-light max-w-xl mb-10 leading-relaxed">
-              Le tracker de performance definitif pour les athletes qui repoussent leurs limites en plein air. Concu pour la montagne, pense pour les passionnes.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" className="bg-primary hover:bg-primary/90 text-white rounded-full px-8 py-7 text-lg font-bold shadow-[0_0_30px_rgba(37,99,235,0.3)] hover:shadow-[0_0_50px_rgba(37,99,235,0.5)] transition-all">
-                Telecharger Ryzer
-              </Button>
-              <Button size="lg" variant="outline" className="border-white/20 hover:bg-white/5 text-white rounded-full px-8 py-7 text-lg font-semibold backdrop-blur-sm">
-                Decouvrir les fonctionnalites
-              </Button>
-            </div>
+      {/* ═══ HERO ═══ */}
+      <section style={{
+        position: "relative", width: "100%", height: "100vh", minHeight: 560,
+        display: "flex", alignItems: "center",
+        background: "#08090f", overflow: "hidden",
+      }}>
+        <img
+          src="/hero-nature.png"
+          alt="Coureur de trail en montagne"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block", zIndex: 0 }}
+        />
+        <div style={{ position: "absolute", inset: 0, zIndex: 1, background: "linear-gradient(to top, #ffffff 0%, rgba(7,8,15,0.5) 55%, rgba(7,8,15,0.22) 100%)" }} />
+        <div style={{ position: "relative", zIndex: 2, maxWidth: 1200, margin: "0 auto", padding: "5rem 1.25rem 0", width: "100%" }}>
+          <h1 style={{ fontSize: "clamp(2.8rem,9vw,6.5rem)", fontWeight: 900, letterSpacing: "-0.035em", lineHeight: 1, textTransform: "uppercase", color: "#fff", marginBottom: "1.25rem" }}>
+            ATTEINS<br />
+            <span style={{ background: "linear-gradient(90deg,#2563eb,#f97316)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>LES SOMMETS.</span>
+          </h1>
+          <p style={{ fontSize: "clamp(0.95rem,2.2vw,1.2rem)", color: "rgba(255,255,255,0.78)", fontWeight: 300, maxWidth: 480, marginBottom: "2rem", lineHeight: 1.65 }}>
+            Le tracker de performance définitif pour les athlètes qui repoussent leurs limites en plein air. Conçu pour la montagne, pensé pour les passionnés.
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.875rem" }}>
+            <a href="#cta" style={{ background: "#2563eb", color: "#fff", fontWeight: 700, fontSize: "1rem", padding: "0.875rem 2rem", borderRadius: 999, textDecoration: "none", boxShadow: "0 0 28px rgba(37,99,235,0.3)", display: "inline-block" }}>Télécharger Ryzer</a>
+            <a href="#features" style={{ background: "transparent", color: "#fff", fontWeight: 600, fontSize: "1rem", padding: "0.875rem 2rem", borderRadius: 999, border: "1px solid rgba(255,255,255,0.28)", textDecoration: "none", display: "inline-block" }}>Découvrir les fonctionnalités</a>
           </div>
         </div>
       </section>
 
-      {/* Stats / Numbers Section */}
-      <section className="py-24 md:py-32 relative border-t border-white/5 bg-card/30" id="stats">
-        <div className="container mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
-            {[
-              { label: "Athletes actifs", value: "250K+" },
-              { label: "Metres de denivele enregistres", value: "14M" },
-              { label: "Sentiers cartographies", value: "50 000" },
-              { label: "Equipes professionnelles", value: "12" },
-            ].map((stat, i) => (
-              <div key={i} className="flex flex-col gap-2 border-l-2 border-primary/30 pl-6">
-                <span className="text-4xl md:text-5xl font-black text-white">{stat.value}</span>
-                <span className="text-sm md:text-base text-white/60 font-medium tracking-wide uppercase">{stat.label}</span>
+      {/* ═══ STATS ═══ */}
+      <section id="stats" style={{ padding: "4.5rem 0", background: "#f1f5f9", borderTop: "1px solid rgba(15,23,42,0.08)" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "2rem" }} className="stats-grid">
+            {[{v:"250K+",l:"Athlètes actifs"},{v:"14M",l:"Mètres de dénivelé"},{v:"50 000",l:"Sentiers cartographiés"},{v:"12",l:"Équipes pro"}].map(s => (
+              <div key={s.l} style={{ borderLeft: "2px solid rgba(37,99,235,0.3)", paddingLeft: "1.25rem" }}>
+                <div style={{ fontSize: "clamp(1.8rem,4vw,2.75rem)", fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1, marginBottom: "0.35rem", color: "#0f172a" }}>{s.v}</div>
+                <div style={{ fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "rgba(15,23,42,0.5)" }}>{s.l}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Feature Showcase 1 */}
-      <section className="py-24 md:py-32 relative overflow-hidden" id="features">
-        <div className="container mx-auto px-6 md:px-12">
-          <div className="grid md:grid-cols-2 gap-16 md:gap-24 items-center">
-            <div className="order-2 md:order-1 relative">
-              <div className="absolute inset-0 bg-primary/20 blur-[100px] rounded-full" />
-              <img
-                src="/app-ui-mockup.png"
-                alt="Interface de l'application Ryzer"
-                className="relative z-10 w-full max-w-sm mx-auto rounded-3xl shadow-2xl border border-white/10"
-              />
+      {/* ═══ FEATURES ═══ */}
+      <section id="features" style={{ padding: "5rem 0", background: "#fff" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "3rem", alignItems: "center" }} className="feature-row">
+            <div>
+              <span style={{ display: "inline-flex", padding: "0.25rem 0.8rem", borderRadius: 999, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.2)", color: "#2563eb", marginBottom: "1.25rem" }}>Intégration seamless</span>
+              <h2 style={{ fontSize: "clamp(1.75rem,4vw,3rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "1rem", color: "#0f172a" }}>Vos données<br />sur votre poignet.</h2>
+              <p style={{ fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, marginBottom: "1.5rem", lineHeight: 1.7 }}>Laissez votre téléphone dans votre sac. L'appli montre Ryzer vous livre les métriques de performance essentielles au bon moment, sans latence.</p>
+              <button style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", color: "#2563eb", fontWeight: 700, fontSize: "0.95rem", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Voir les appareils compatibles →</button>
             </div>
-            <div className="order-1 md:order-2 space-y-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 border border-accent/20 text-accent text-sm font-bold tracking-wide uppercase">
-                Metriques de precision
-              </div>
-              <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-white leading-tight">
-                Chaque metre <br/> compte.
-              </h2>
-              <p className="text-xl text-white/70 font-light leading-relaxed">
-                Notre algorithme altimetrique proprietary filtre le bruit pour vous offrir les donnees d'elevation les plus precises. Parce que sur une pente a 20%, chaque pas compte.
-              </p>
-              <ul className="space-y-4 pt-4">
-                {[
-                  "Analyse du gradient en temps reel",
-                  "Superposition frequence cardiaque / altitude",
-                  "Rappels nutritionnels bases sur l'effort",
-                ].map((item, i) => (
-                  <li key={i} className="flex items-center gap-4 text-white/80 font-medium">
-                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    </div>
-                    {item}
-                  </li>
+            <div style={{ position: "relative", textAlign: "center" }}>
+              <img src="/smartwatch-stats.png" alt="Interface montre connectée" loading="lazy" style={{ width: "100%", maxWidth: 360, margin: "0 auto", borderRadius: "1.5rem", border: "1px solid rgba(15,23,42,0.08)", boxShadow: "0 20px 60px rgba(0,0,0,0.1)" }} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ ROADMAP ═══ */}
+      <section id="roadmap" style={{ padding: "5rem 0", background: "#f1f5f9", borderTop: "1px solid rgba(15,23,42,0.08)" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem" }}>
+          <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563eb", marginBottom: "0.6rem" }}>Ce qui arrive</p>
+          <h2 style={{ fontSize: "clamp(1.75rem,4vw,2.75rem)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: "0.6rem", color: "#0f172a" }}>Roadmap</h2>
+          <p style={{ fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, maxWidth: 500, marginBottom: "3rem", lineHeight: 1.7 }}>Découvrez les fonctionnalités en cours de développement et celles qui arrivent prochainement.</p>
+          {roadmapLoading ? (
+            <div style={{ textAlign: "center", padding: "3rem", color: "rgba(15,23,42,0.4)" }}>Chargement...</div>
+          ) : roadmap.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "3rem", color: "rgba(15,23,42,0.4)" }}>Aucun élément pour le moment.</div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: "1rem" }}>
+              {roadmap.map(item => {
+                const b = BADGE[item.status] ?? BADGE.planned;
+                return (
+                  <div key={item.id} style={{ background: "#fff", border: "1px solid rgba(15,23,42,0.08)", borderRadius: "1.25rem", padding: "1.4rem", boxShadow: "0 2px 10px rgba(0,0,0,0.04)" }}>
+                    <span style={{ display: "inline-flex", padding: "0.2rem 0.65rem", borderRadius: 999, fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: "0.9rem", background: b.bg, color: b.color }}>{b.label}</span>
+                    {item.quarter && <div style={{ fontSize: "0.72rem", color: "rgba(15,23,42,0.4)", marginBottom: "0.4rem" }}>{item.quarter}</div>}
+                    <div style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "0.35rem", color: "#0f172a" }}>{item.title}</div>
+                    {item.description && <div style={{ fontSize: "0.85rem", color: "rgba(15,23,42,0.55)", lineHeight: 1.55 }}>{item.description}</div>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ═══ CTA ═══ */}
+      <section id="cta" style={{ padding: "6rem 1.25rem", textAlign: "center", borderTop: "1px solid rgba(15,23,42,0.08)", position: "relative", overflow: "hidden", background: "#fff" }}>
+        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center,rgba(37,99,235,0.05) 0%,transparent 70%)", pointerEvents: "none" }} />
+        <h2 style={{ position: "relative", fontSize: "clamp(2rem,7vw,5rem)", fontWeight: 900, letterSpacing: "-0.04em", textTransform: "uppercase", lineHeight: 1, marginBottom: "1rem", color: "#0f172a" }}>PRÊT À<br />DÉPASSER<br />TES LIMITES ?</h2>
+        <p style={{ position: "relative", fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, maxWidth: 480, margin: "0 auto 2rem", lineHeight: 1.7 }}>Rejoins les milliers d'athlètes qui utilisent déjà Ryzer pour se surpasser chaque jour.</p>
+        <button style={{ position: "relative", background: "#2563eb", color: "#fff", fontWeight: 900, fontSize: "1rem", padding: "1rem 3rem", borderRadius: 999, border: "none", cursor: "pointer", boxShadow: "0 0 40px rgba(37,99,235,0.22)" }}>Télécharger gratuitement</button>
+      </section>
+
+      {/* ═══ FOOTER ═══ */}
+      <footer style={{ background: "#fff", borderTop: "1px solid rgba(15,23,42,0.08)", padding: "3.5rem 0 2rem" }}>
+        <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: "2rem", marginBottom: "2.5rem" }}>
+            <div>
+              <img src="/logo-bw.png" alt="Ryzer" style={{ height: "1.75rem", borderRadius: 10, objectFit: "contain", opacity: 0.7, marginBottom: "0.875rem" }} />
+              <p style={{ fontSize: "0.8rem", color: "rgba(15,23,42,0.55)", maxWidth: 260, lineHeight: 1.6 }}>Créé par des athlètes, pour des athlètes. La référence pour les sports de montagne et de trail.</p>
+            </div>
+            <div>
+              <h4 style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.875rem", color: "#0f172a" }}>Produit</h4>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {[["#features","Fonctionnalités"],["#roadmap","Roadmap"],["#","Appareils"]].map(([href,label]) => (
+                  <li key={label}><a href={href} style={{ fontSize: "0.825rem", color: "rgba(15,23,42,0.55)", textDecoration: "none" }}>{label}</a></li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h4 style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.875rem", color: "#0f172a" }}>Entreprise</h4>
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                {[["#","À propos"],["#","Recrutement"],["/admin","Portail admin"],["#","Contact"]].map(([href,label]) => (
+                  <li key={label}><a href={href} style={{ fontSize: "0.825rem", color: "rgba(15,23,42,0.55)", textDecoration: "none" }}>{label}</a></li>
                 ))}
               </ul>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Immersive Image Break */}
-      <section className="py-24 relative" id="athletes">
-        <div className="container mx-auto px-6 md:px-12">
-          <div className="relative rounded-[2rem] overflow-hidden aspect-video md:aspect-[21/9]">
-            <img
-              src="/trail-runner.png"
-              alt="Coureur a l'aube"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent opacity-80" />
-            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-16">
-              <p className="text-2xl md:text-4xl font-light italic text-white/90 max-w-3xl">
-                "Ryzer ne se contente pas de suivre mes sorties. Il comprend la montagne. C'est la seule appli en laquelle j'ai confiance au-dessus de 3 000 metres."
-              </p>
-              <p className="mt-4 text-primary font-bold uppercase tracking-widest text-sm">
-                — Sarah Jenkins, Finaliste UTMB
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Feature Showcase 2 */}
-      <section className="py-24 md:py-32">
-        <div className="container mx-auto px-6 md:px-12">
-          <div className="grid md:grid-cols-2 gap-16 md:gap-24 items-center">
-            <div className="space-y-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-bold tracking-wide uppercase">
-                Integration seamless
-              </div>
-              <h2 className="text-4xl md:text-6xl font-bold tracking-tight text-white leading-tight">
-                Vos donnees <br/> sur votre poignet.
-              </h2>
-              <p className="text-xl text-white/70 font-light leading-relaxed">
-                Laissez votre telephone dans votre sac. L'appli montre Ryzer vous livre les metriques de performance essentielles au bon moment, sans latence.
-              </p>
-              <Button variant="link" className="text-primary hover:text-primary/80 p-0 text-lg font-bold group">
-                Voir les appareils compatibles
-                <span className="inline-block transition-transform group-hover:translate-x-1 ml-2">→</span>
-              </Button>
-            </div>
-            <div className="relative">
-              <div className="absolute inset-0 bg-accent/20 blur-[100px] rounded-full" />
-              <img
-                src="/smartwatch-stats.png"
-                alt="Interface montre connectee"
-                className="relative z-10 w-full rounded-3xl shadow-2xl"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-32 relative overflow-hidden border-t border-white/5">
-        <div className="absolute inset-0 bg-primary/5" />
-        <div className="container relative z-10 mx-auto px-6 text-center">
-          <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white mb-6">
-            PRET A DEPASSER TES LIMITES ?
-          </h2>
-          <p className="text-xl text-white/70 font-light mb-10 max-w-2xl mx-auto">
-            Rejoins les milliers d'athletes qui utilisent deja Ryzer pour se surpasser chaque jour.
-          </p>
-          <Button size="lg" className="bg-white text-background hover:bg-white/90 rounded-full px-12 py-8 text-xl font-black tracking-tight shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:scale-105 transition-all duration-300">
-            Telecharger gratuitement
-          </Button>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-background border-t border-white/5 py-12 md:py-20">
-        <div className="container mx-auto px-6 md:px-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-16">
-            <div className="col-span-2">
-              <img src="/logo-bw.png" alt="Ryzer" className="h-8 object-contain mb-6 opacity-80 rounded-xl" />
-              <p className="text-sm text-white/50 max-w-sm">
-                Cree par des athletes, pour des athletes. Ryzer est la plateforme de suivi de performance de reference pour les sports de montagne et de trail.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-white font-bold mb-4 uppercase text-sm tracking-wider">Produit</h4>
-              <ul className="space-y-3 text-sm text-white/60">
-                <li><a href="#" className="hover:text-primary transition-colors">Fonctionnalites</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Tarifs</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Appareils compatibles</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Notes de mise a jour</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-bold mb-4 uppercase text-sm tracking-wider">Entreprise</h4>
-              <ul className="space-y-3 text-sm text-white/60">
-                <li><a href="#" className="hover:text-primary transition-colors">A propos</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Recrutement</a></li>
-                <li><Link href="/admin" className="hover:text-primary transition-colors">Portail admin</Link></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Contact</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/5 text-sm text-white/40">
-            <p>© {new Date().getFullYear()} Ryzer. Tous droits reserves.</p>
-            <div className="flex gap-6 mt-4 md:mt-0">
-              <a href="#" className="hover:text-white transition-colors">Politique de confidentialite</a>
-              <a href="#" className="hover:text-white transition-colors">Conditions d'utilisation</a>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "0.75rem", paddingTop: "1.5rem", borderTop: "1px solid rgba(15,23,42,0.08)", fontSize: "0.75rem", color: "rgba(15,23,42,0.4)" }}>
+            <span>© {new Date().getFullYear()} Ryzer. Tous droits réservés.</span>
+            <div style={{ display: "flex", gap: "1.25rem" }}>
+              <a href="#" style={{ color: "rgba(15,23,42,0.4)", textDecoration: "none" }}>Confidentialité</a>
+              <a href="#" style={{ color: "rgba(15,23,42,0.4)", textDecoration: "none" }}>Conditions</a>
             </div>
           </div>
         </div>
       </footer>
+
+      {/* Responsive styles */}
+      <style>{`
+        html, body { background: #08090f; }
+        .md-show { display: none !important; }
+        .md-hide { display: flex !important; }
+        @media (min-width: 768px) {
+          .md-show { display: flex !important; }
+          .md-hide { display: none !important; }
+        }
+        .stats-grid { grid-template-columns: repeat(2,1fr); }
+        @media (min-width: 720px) { .stats-grid { grid-template-columns: repeat(4,1fr); } }
+        .feature-row { grid-template-columns: 1fr; }
+        @media (min-width: 768px) { .feature-row { grid-template-columns: 1fr 1fr; gap: 5rem !important; } }
+      `}</style>
     </div>
   );
 }
