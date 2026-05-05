@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Ryzer - Site Vitrine"
+version = "1.0.0"
+id = "artifacts/ryzer-site"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 25115
+
+[services.development]
+run = "pnpm --filter @workspace/ryzer-site run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/ryzer-site", "run", "build" ]
+publicDir = "artifacts/ryzer-site/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "25115"
+BASE_PATH = "/"

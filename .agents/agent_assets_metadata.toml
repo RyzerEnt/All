@@ -1,0 +1,26 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "M6kum5iaa_JZvmIEfMTSp"
+uri = "file://attached_assets/generated_images/generated_image.png"
+type = "image"
+title = "generated_image"
+
+[[generated]]
+id = "ozppS6-bUpid8MKmRxGI_"
+uri = "file://artifacts/ryzer-site/public/app-ui-mockup.png"
+type = "image"
+title = "Mobile app UI mockup"
+
+[[generated]]
+id = "2F92G7BMS53MfH6Img0wU"
+uri = "file://artifacts/ryzer-site/public/trail-runner.png"
+type = "image"
+title = "Trail runner at dawn"
+
+[[generated]]
+id = "FyE6TbmzGqwoT8pE0-Neb"
+uri = "file://artifacts/ryzer-site/public/smartwatch-stats.png"
+type = "image"
+title = "Smartwatch showing stats"
