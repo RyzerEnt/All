@@ -22,8 +22,8 @@ router.get("/sports", async (_req, res) => {
       appliesElevation: s.appliesElevation,
       createdAt: s.createdAt,
     })));
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch sports" });
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to fetch sports", detail: err?.message });
   }
 });
 

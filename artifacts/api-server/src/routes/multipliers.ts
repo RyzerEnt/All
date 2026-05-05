@@ -19,8 +19,8 @@ router.get("/multipliers", async (_req, res) => {
       unit: m.unit,
       updatedAt: m.updatedAt,
     })));
-  } catch (err) {
-    res.status(500).json({ error: "Failed to fetch multipliers" });
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to fetch multipliers", detail: err?.message });
   }
 });
 
