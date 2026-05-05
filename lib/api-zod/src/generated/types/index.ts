@@ -6,4 +6,13 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./calcResult";
+export * from "./calcResultBreakdown";
+export * from "./calcSummary";
+export * from "./computeCaloriesBody";
+export * from "./createSportBody";
+export * from "./deleteResult";
 export * from "./healthStatus";
+export * from "./multiplier";
+export * from "./sport";
+export * from "./updateMultiplierBody";

@@ -1,6 +1,5 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
   description: API specification
@@ -10,13 +9,18 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: calc
+    description: Calculateur sportif
+  - name: sports
+    description: Gestion des sports
+  - name: multipliers
+    description: Gestion des multiplicateurs
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +28,153 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /sports:
+    get:
+      operationId: listSports
+      tags: [sports]
+      summary: Liste tous les sports disponibles
+      responses:
+        "200":
+          description: Liste des sports
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sport"
+    post:
+      operationId: createSport
+      tags: [sports]
+      summary: Créer un nouveau sport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSportBody"
+      responses:
+        "201":
+          description: Sport créé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sport"
+
+  /sports/{id}:
+    put:
+      operationId: updateSport
+      tags: [sports]
+      summary: Mettre à jour un sport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSportBody"
+      responses:
+        "200":
+          description: Sport mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sport"
+    delete:
+      operationId: deleteSport
+      tags: [sports]
+      summary: Supprimer un sport
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Supprimé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeleteResult"
+
+  /multipliers:
+    get:
+      operationId: listMultipliers
+      tags: [multipliers]
+      summary: Liste tous les multiplicateurs de paramètres
+      responses:
+        "200":
+          description: Liste des multiplicateurs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Multiplier"
+
+  /multipliers/{id}:
+    put:
+      operationId: updateMultiplier
+      tags: [multipliers]
+      summary: Mettre à jour un multiplicateur
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMultiplierBody"
+      responses:
+        "200":
+          description: Multiplicateur mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Multiplier"
+
+  /calc/compute:
+    post:
+      operationId: computeCalories
+      tags: [calc]
+      summary: Calculer les calories dépensées
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComputeCaloriesBody"
+      responses:
+        "200":
+          description: Résultat du calcul
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalcResult"
+
+  /calc/summary:
+    get:
+      operationId: getCalcSummary
+      tags: [calc]
+      summary: Résumé des données du calculateur (stats pour l'admin)
+      responses:
+        "200":
+          description: Résumé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalcSummary"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +185,176 @@ components:
       required:
         - status
 
+    Sport:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        slug:
+          type: string
+        baseMet:
+          type: number
+          description: Valeur MET de base du sport
+        icon:
+          type: string
+          description: Emoji ou identifiant d'icône
+        appliesElevation:
+          type: boolean
+          description: Si vrai, le dénivelé s'applique à ce sport
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - slug
+        - baseMet
+        - icon
+        - appliesElevation
+        - createdAt
+
+    CreateSportBody:
+      type: object
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+        baseMet:
+          type: number
+        icon:
+          type: string
+        appliesElevation:
+          type: boolean
+      required:
+        - name
+        - slug
+        - baseMet
+        - icon
+        - appliesElevation
+
+    Multiplier:
+      type: object
+      properties:
+        id:
+          type: integer
+        paramKey:
+          type: string
+          description: Clé du paramètre (ex. duration, heart_rate, vo2_max, elevation)
+        label:
+          type: string
+          description: Nom affiché
+        value:
+          type: number
+          description: Valeur du multiplicateur
+        description:
+          type: string
+        minValue:
+          type: number
+        maxValue:
+          type: number
+        unit:
+          type: string
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - paramKey
+        - label
+        - value
+        - description
+        - minValue
+        - maxValue
+        - unit
+        - updatedAt
+
+    UpdateMultiplierBody:
+      type: object
+      properties:
+        value:
+          type: number
+      required:
+        - value
+
+    ComputeCaloriesBody:
+      type: object
+      properties:
+        sportId:
+          type: integer
+        durationMinutes:
+          type: number
+        heartRateBpm:
+          type: number
+          description: Fréquence cardiaque en bpm
+        vo2Max:
+          type: number
+          description: VO2 max en ml/kg/min
+        elevationGainMeters:
+          type: number
+          description: Dénivelé positif en mètres
+        weightKg:
+          type: number
+          description: Poids en kg (optionnel, défaut 70)
+      required:
+        - sportId
+        - durationMinutes
+        - heartRateBpm
+        - vo2Max
+
+    CalcResult:
+      type: object
+      properties:
+        calories:
+          type: number
+        breakdown:
+          type: object
+          properties:
+            base:
+              type: number
+            heartRateFactor:
+              type: number
+            vo2Factor:
+              type: number
+            elevationBonus:
+              type: number
+            durationHours:
+              type: number
+          required:
+            - base
+            - heartRateFactor
+            - vo2Factor
+            - elevationBonus
+            - durationHours
+        sport:
+          $ref: "#/components/schemas/Sport"
+      required:
+        - calories
+        - breakdown
+        - sport
+
+    CalcSummary:
+      type: object
+      properties:
+        totalSports:
+          type: integer
+        totalMultipliers:
+          type: integer
+        avgMet:
+          type: number
+        topSportByMet:
+          $ref: "#/components/schemas/Sport"
+      required:
+        - totalSports
+        - totalMultipliers
+        - avgMet
+
+    DeleteResult:
+      type: object
+      properties:
+        success:
+          type: boolean
+      required:
+        - success

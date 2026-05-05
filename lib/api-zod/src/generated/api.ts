@@ -8,9 +8,182 @@
 import * as zod from "zod";
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
+});
+
+/**
+ * @summary Liste tous les sports disponibles
+ */
+export const ListSportsResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  slug: zod.string(),
+  baseMet: zod.number().describe("Valeur MET de base du sport"),
+  icon: zod.string().describe("Emoji ou identifiant d'icône"),
+  appliesElevation: zod
+    .boolean()
+    .describe("Si vrai, le dénivelé s'applique à ce sport"),
+  createdAt: zod.coerce.date(),
+});
+export const ListSportsResponse = zod.array(ListSportsResponseItem);
+
+/**
+ * @summary Créer un nouveau sport
+ */
+export const CreateSportBody = zod.object({
+  name: zod.string(),
+  slug: zod.string(),
+  baseMet: zod.number(),
+  icon: zod.string(),
+  appliesElevation: zod.boolean(),
+});
+
+/**
+ * @summary Mettre à jour un sport
+ */
+export const UpdateSportParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateSportBody = zod.object({
+  name: zod.string(),
+  slug: zod.string(),
+  baseMet: zod.number(),
+  icon: zod.string(),
+  appliesElevation: zod.boolean(),
+});
+
+export const UpdateSportResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  slug: zod.string(),
+  baseMet: zod.number().describe("Valeur MET de base du sport"),
+  icon: zod.string().describe("Emoji ou identifiant d'icône"),
+  appliesElevation: zod
+    .boolean()
+    .describe("Si vrai, le dénivelé s'applique à ce sport"),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Supprimer un sport
+ */
+export const DeleteSportParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const DeleteSportResponse = zod.object({
+  success: zod.boolean(),
+});
+
+/**
+ * @summary Liste tous les multiplicateurs de paramètres
+ */
+export const ListMultipliersResponseItem = zod.object({
+  id: zod.number(),
+  paramKey: zod
+    .string()
+    .describe(
+      "Clé du paramètre (ex. duration, heart_rate, vo2_max, elevation)",
+    ),
+  label: zod.string().describe("Nom affiché"),
+  value: zod.number().describe("Valeur du multiplicateur"),
+  description: zod.string(),
+  minValue: zod.number(),
+  maxValue: zod.number(),
+  unit: zod.string(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListMultipliersResponse = zod.array(ListMultipliersResponseItem);
+
+/**
+ * @summary Mettre à jour un multiplicateur
+ */
+export const UpdateMultiplierParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const UpdateMultiplierBody = zod.object({
+  value: zod.number(),
+});
+
+export const UpdateMultiplierResponse = zod.object({
+  id: zod.number(),
+  paramKey: zod
+    .string()
+    .describe(
+      "Clé du paramètre (ex. duration, heart_rate, vo2_max, elevation)",
+    ),
+  label: zod.string().describe("Nom affiché"),
+  value: zod.number().describe("Valeur du multiplicateur"),
+  description: zod.string(),
+  minValue: zod.number(),
+  maxValue: zod.number(),
+  unit: zod.string(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Calculer les calories dépensées
+ */
+export const ComputeCaloriesBody = zod.object({
+  sportId: zod.number(),
+  durationMinutes: zod.number(),
+  heartRateBpm: zod.number().describe("Fréquence cardiaque en bpm"),
+  vo2Max: zod.number().describe("VO2 max en ml\/kg\/min"),
+  elevationGainMeters: zod
+    .number()
+    .optional()
+    .describe("Dénivelé positif en mètres"),
+  weightKg: zod
+    .number()
+    .optional()
+    .describe("Poids en kg (optionnel, défaut 70)"),
+});
+
+export const ComputeCaloriesResponse = zod.object({
+  calories: zod.number(),
+  breakdown: zod.object({
+    base: zod.number(),
+    heartRateFactor: zod.number(),
+    vo2Factor: zod.number(),
+    elevationBonus: zod.number(),
+    durationHours: zod.number(),
+  }),
+  sport: zod.object({
+    id: zod.number(),
+    name: zod.string(),
+    slug: zod.string(),
+    baseMet: zod.number().describe("Valeur MET de base du sport"),
+    icon: zod.string().describe("Emoji ou identifiant d'icône"),
+    appliesElevation: zod
+      .boolean()
+      .describe("Si vrai, le dénivelé s'applique à ce sport"),
+    createdAt: zod.coerce.date(),
+  }),
+});
+
+/**
+ * @summary Résumé des données du calculateur (stats pour l'admin)
+ */
+export const GetCalcSummaryResponse = zod.object({
+  totalSports: zod.number(),
+  totalMultipliers: zod.number(),
+  avgMet: zod.number(),
+  topSportByMet: zod
+    .object({
+      id: zod.number(),
+      name: zod.string(),
+      slug: zod.string(),
+      baseMet: zod.number().describe("Valeur MET de base du sport"),
+      icon: zod.string().describe("Emoji ou identifiant d'icône"),
+      appliesElevation: zod
+        .boolean()
+        .describe("Si vrai, le dénivelé s'applique à ce sport"),
+      createdAt: zod.coerce.date(),
+    })
+    .optional(),
 });

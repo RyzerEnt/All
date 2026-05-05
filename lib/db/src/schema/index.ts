@@ -20,3 +20,5 @@
 export * from "./roadmap";
 export * from "./waitlist";
 export * from "./features";
+export * from "./sports";
+export * from "./calc_multipliers";

@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/sport-calc/"
+title = "Calculateur Sportif"
+version = "1.0.0"
+id = "artifacts/sport-calc"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/sport-calc/" ]
+localPort = 18304
+
+[services.development]
+run = "pnpm --filter @workspace/sport-calc run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/sport-calc", "run", "build" ]
+publicDir = "artifacts/sport-calc/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18304"
+BASE_PATH = "/sport-calc/"

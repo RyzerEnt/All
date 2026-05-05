@@ -1,4 +1,4 @@
-modules = ["nodejs-24"]
+modules = ["nodejs-24", "postgresql-16"]
 
 [deployment]
 router = "application"
@@ -24,6 +24,10 @@ args = "ryzer-site"
 task = "workflow.run"
 args = "API Server"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "sport-calc"
+
 [[workflows.workflow]]
 name = "ryzer-site"
 author = "agent"
@@ -48,6 +52,18 @@ task = "shell.exec"
 args = "PORT=8080 pnpm --filter @workspace/api-server run dev"
 waitForPort = 8080
 
+[[workflows.workflow]]
+name = "sport-calc"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=18304 BASE_PATH=/sport-calc/ pnpm --filter @workspace/sport-calc run dev"
+waitForPort = 18304
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true
@@ -61,6 +77,10 @@ localPort = 8080
 externalPort = 8080
 
 [[ports]]
+localPort = 18304
+externalPort = 3001
+
+[[ports]]
 localPort = 25115
 externalPort = 80
 
@@ -71,3 +91,6 @@ ADMIN_EMAIL = "meonix100@gmail.com"
 ADMIN_PASSWORD = "Baba.5524"
 JWT_SECRET = "ryzer-jwt-s3cr3t-2026"
 RYZER_DATABASE_URL = "postgresql://ryzer:spacemeonixme@db.meonix.me:5432/ryzer_db"
+
+[nix]
+channel = "stable-25_05"

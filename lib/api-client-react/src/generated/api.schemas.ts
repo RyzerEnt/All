@@ -8,3 +8,81 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface Sport {
+  id: number;
+  name: string;
+  slug: string;
+  /** Valeur MET de base du sport */
+  baseMet: number;
+  /** Emoji ou identifiant d'icône */
+  icon: string;
+  /** Si vrai, le dénivelé s'applique à ce sport */
+  appliesElevation: boolean;
+  createdAt: string;
+}
+
+export interface CreateSportBody {
+  name: string;
+  slug: string;
+  baseMet: number;
+  icon: string;
+  appliesElevation: boolean;
+}
+
+export interface Multiplier {
+  id: number;
+  /** Clé du paramètre (ex. duration, heart_rate, vo2_max, elevation) */
+  paramKey: string;
+  /** Nom affiché */
+  label: string;
+  /** Valeur du multiplicateur */
+  value: number;
+  description: string;
+  minValue: number;
+  maxValue: number;
+  unit: string;
+  updatedAt: string;
+}
+
+export interface UpdateMultiplierBody {
+  value: number;
+}
+
+export interface ComputeCaloriesBody {
+  sportId: number;
+  durationMinutes: number;
+  /** Fréquence cardiaque en bpm */
+  heartRateBpm: number;
+  /** VO2 max en ml/kg/min */
+  vo2Max: number;
+  /** Dénivelé positif en mètres */
+  elevationGainMeters?: number;
+  /** Poids en kg (optionnel, défaut 70) */
+  weightKg?: number;
+}
+
+export type CalcResultBreakdown = {
+  base: number;
+  heartRateFactor: number;
+  vo2Factor: number;
+  elevationBonus: number;
+  durationHours: number;
+};
+
+export interface CalcResult {
+  calories: number;
+  breakdown: CalcResultBreakdown;
+  sport: Sport;
+}
+
+export interface CalcSummary {
+  totalSports: number;
+  totalMultipliers: number;
+  avgMet: number;
+  topSportByMet?: Sport;
+}
+
+export interface DeleteResult {
+  success: boolean;
+}
