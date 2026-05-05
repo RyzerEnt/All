@@ -126,16 +126,20 @@ export default function Home() {
         />
         <div style={{ position: "absolute", inset: 0, zIndex: 1, background: "linear-gradient(to top, #ffffff 0%, rgba(7,8,15,0.5) 55%, rgba(7,8,15,0.22) 100%)" }} />
         <div style={{ position: "relative", zIndex: 2, maxWidth: 1200, margin: "0 auto", padding: "5rem 1.25rem 0", width: "100%" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(249,115,22,0.15)", border: "1px solid rgba(249,115,22,0.35)", borderRadius: 999, padding: "0.3rem 0.9rem", marginBottom: "1.5rem" }}>
+            <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#f97316", display: "inline-block", boxShadow: "0 0 8px #f97316" }} />
+            <span style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#f97316" }}>En développement — bientôt disponible</span>
+          </div>
           <h1 style={{ fontSize: "clamp(2.8rem,9vw,6.5rem)", fontWeight: 900, letterSpacing: "-0.035em", lineHeight: 1, textTransform: "uppercase", color: "#fff", marginBottom: "1.25rem" }}>
             ATTEINS<br />
             <span style={{ background: "linear-gradient(90deg,#2563eb,#f97316)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>LES SOMMETS.</span>
           </h1>
           <p style={{ fontSize: "clamp(0.95rem,2.2vw,1.2rem)", color: "rgba(255,255,255,0.78)", fontWeight: 300, maxWidth: 480, marginBottom: "2rem", lineHeight: 1.65 }}>
-            Le tracker de performance définitif pour les athlètes qui repoussent leurs limites en plein air. Conçu pour la montagne, pensé pour les passionnés.
+            Le tracker de performance définitif pour les athlètes de trail et de montagne. En cours de développement — sois parmi les premiers à le découvrir.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.875rem" }}>
-            <a href="#cta" style={{ background: "#2563eb", color: "#fff", fontWeight: 700, fontSize: "1rem", padding: "0.875rem 2rem", borderRadius: 999, textDecoration: "none", boxShadow: "0 0 28px rgba(37,99,235,0.3)", display: "inline-block" }}>Télécharger Ryzer</a>
-            <a href="#features" style={{ background: "transparent", color: "#fff", fontWeight: 600, fontSize: "1rem", padding: "0.875rem 2rem", borderRadius: 999, border: "1px solid rgba(255,255,255,0.28)", textDecoration: "none", display: "inline-block" }}>Découvrir les fonctionnalités</a>
+            <a href="#cta" style={{ background: "#2563eb", color: "#fff", fontWeight: 700, fontSize: "1rem", padding: "0.875rem 2rem", borderRadius: 999, textDecoration: "none", boxShadow: "0 0 28px rgba(37,99,235,0.3)", display: "inline-block" }}>Être notifié en premier</a>
+            <a href="#roadmap" style={{ background: "transparent", color: "#fff", fontWeight: 600, fontSize: "1rem", padding: "0.875rem 2rem", borderRadius: 999, border: "1px solid rgba(255,255,255,0.28)", textDecoration: "none", display: "inline-block" }}>Voir la roadmap</a>
           </div>
         </div>
       </section>
@@ -144,9 +148,9 @@ export default function Home() {
       <section id="stats" style={{ padding: "4.5rem 0", background: "#f1f5f9", borderTop: "1px solid rgba(15,23,42,0.08)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "2rem" }} className="stats-grid">
-            {[{v:"250K+",l:"Athlètes actifs"},{v:"14M",l:"Mètres de dénivelé"},{v:"50 000",l:"Sentiers cartographiés"},{v:"12",l:"Équipes pro"}].map(s => (
+            {[{v:"Bêta",l:"Phase actuelle"},{v:"2025",l:"Lancement visé"},{v:"Trail",l:"Sport cible principal"},{v:"iOS & Android",l:"Plateformes prévues"}].map(s => (
               <div key={s.l} style={{ borderLeft: "2px solid rgba(37,99,235,0.3)", paddingLeft: "1.25rem" }}>
-                <div style={{ fontSize: "clamp(1.8rem,4vw,2.75rem)", fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1, marginBottom: "0.35rem", color: "#0f172a" }}>{s.v}</div>
+                <div style={{ fontSize: "clamp(1.4rem,3vw,2rem)", fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1, marginBottom: "0.35rem", color: "#0f172a" }}>{s.v}</div>
                 <div style={{ fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "rgba(15,23,42,0.5)" }}>{s.l}</div>
               </div>
             ))}
@@ -202,9 +206,19 @@ export default function Home() {
       {/* ═══ CTA ═══ */}
       <section id="cta" style={{ padding: "6rem 1.25rem", textAlign: "center", borderTop: "1px solid rgba(15,23,42,0.08)", position: "relative", overflow: "hidden", background: "#fff" }}>
         <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center,rgba(37,99,235,0.05) 0%,transparent 70%)", pointerEvents: "none" }} />
-        <h2 style={{ position: "relative", fontSize: "clamp(2rem,7vw,5rem)", fontWeight: 900, letterSpacing: "-0.04em", textTransform: "uppercase", lineHeight: 1, marginBottom: "1rem", color: "#0f172a" }}>PRÊT À<br />DÉPASSER<br />TES LIMITES ?</h2>
-        <p style={{ position: "relative", fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, maxWidth: 480, margin: "0 auto 2rem", lineHeight: 1.7 }}>Rejoins les milliers d'athlètes qui utilisent déjà Ryzer pour se surpasser chaque jour.</p>
-        <button style={{ position: "relative", background: "#2563eb", color: "#fff", fontWeight: 900, fontSize: "1rem", padding: "1rem 3rem", borderRadius: 999, border: "none", cursor: "pointer", boxShadow: "0 0 40px rgba(37,99,235,0.22)" }}>Télécharger gratuitement</button>
+        <div style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: "0.5rem", background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 999, padding: "0.3rem 0.9rem", marginBottom: "1.5rem" }}>
+          <span style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#2563eb" }}>Accès anticipé</span>
+        </div>
+        <h2 style={{ position: "relative", fontSize: "clamp(2rem,7vw,5rem)", fontWeight: 900, letterSpacing: "-0.04em", textTransform: "uppercase", lineHeight: 1, marginBottom: "1rem", color: "#0f172a" }}>SOIS PARMI<br />LES PREMIERS.</h2>
+        <p style={{ position: "relative", fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, maxWidth: 480, margin: "0 auto 2rem", lineHeight: 1.7 }}>Ryzer est en développement actif. Laisse-nous ton email pour être notifié au lancement et accéder à la bêta en avant-première.</p>
+        <div style={{ position: "relative", display: "flex", flexWrap: "wrap", gap: "0.75rem", justifyContent: "center", maxWidth: 460, margin: "0 auto" }}>
+          <input
+            type="email"
+            placeholder="ton@email.com"
+            style={{ flex: 1, minWidth: 200, padding: "0.875rem 1.25rem", borderRadius: 999, border: "1px solid rgba(15,23,42,0.15)", fontSize: "1rem", outline: "none", fontFamily: "inherit" }}
+          />
+          <button style={{ background: "#2563eb", color: "#fff", fontWeight: 700, fontSize: "1rem", padding: "0.875rem 1.75rem", borderRadius: 999, border: "none", cursor: "pointer", boxShadow: "0 0 30px rgba(37,99,235,0.25)", whiteSpace: "nowrap" }}>Me notifier</button>
+        </div>
       </section>
 
       {/* ═══ FOOTER ═══ */}
