@@ -1,0 +1,50 @@
+ => ERROR [builder 14/15] RUN pnpm --filter @workspace/ryzer-site run build                                                                                           1.6s
+------
+ > [builder 14/15] RUN pnpm --filter @workspace/ryzer-site run build:
+1.100 
+1.100 > @workspace/ryzer-site@0.0.0 build /app/artifacts/ryzer-site
+1.100 > vite build --config vite.config.ts
+1.100 
+1.384 /app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js:115
+1.384           throw new Error(
+1.384                 ^
+1.384 
+1.384 Error: Cannot find module @rollup/rollup-linux-arm64-musl. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). Please try `npm i` again after removing both package-lock.json and node_modules directory.
+1.384     at requireWithFriendlyError (/app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js:115:9)
+1.384     at Object.<anonymous> (/app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js:124:76)
+1.384     at Module._compile (node:internal/modules/cjs/loader:1705:14)
+1.384     at Object..js (node:internal/modules/cjs/loader:1838:10)
+1.384     at Module.load (node:internal/modules/cjs/loader:1441:32)
+1.384     at Function._load (node:internal/modules/cjs/loader:1263:12)
+1.384     at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+1.384     at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+1.384     at cjsLoader (node:internal/modules/esm/translators:309:5)
+1.384     at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:202:7) {
+1.384   [cause]: Error: Cannot find module '@rollup/rollup-linux-arm64-musl'
+1.384   Require stack:
+1.384   - /app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js
+1.384       at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+1.384       at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+1.384       at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+1.384       at Function._load (node:internal/modules/cjs/loader:1192:37)
+1.384       at TracingChannel.traceSync (node:diagnostics_channel:328:14)
+1.384       at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+1.384       at Module.require (node:internal/modules/cjs/loader:1463:12)
+1.384       at require (node:internal/modules/helpers:147:16)
+1.384       at requireWithFriendlyError (/app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js:97:10)
+1.384       at Object.<anonymous> (/app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js:124:76) {
+1.384     code: 'MODULE_NOT_FOUND',
+1.384     requireStack: [
+1.384       '/app/node_modules/.pnpm/rollup@4.59.0/node_modules/rollup/dist/native.js'
+1.384     ]
+1.384   }
+1.384 }
+1.384 
+1.384 Node.js v22.22.2
+1.457 /app/artifacts/ryzer-site:
+1.457  ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL  @workspace/ryzer-site@0.0.0 build: `vite build --config vite.config.ts`
+1.457 Exit status 1
+------
+[+] up 0/1
+ ⠙ Image all-main-ryzer Building                                                                                                                                      93.7s
+Dockerfile:25

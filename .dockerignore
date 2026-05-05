@@ -1,11 +1,10 @@
 node_modules
 **/node_modules
-**/dist
-**/.env
-artifacts/ryzer-site/dist
 artifacts/api-server/dist
+artifacts/ryzer-site/dist
 artifacts/mockup-sandbox
 attached_assets
 .git
 .local
 *.log
+.env
