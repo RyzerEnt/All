@@ -1,8 +1,8 @@
 import React from "react";
 import { AppLayout } from "@/components/layout";
-import { 
-  useGetCalcSummary, 
-  useListSports, 
+import {
+  useGetCalcSummary,
+  useListSports,
   useListMultipliers,
   useCreateSport,
   useUpdateSport,
@@ -10,10 +10,9 @@ import {
   useUpdateMultiplier,
   getGetCalcSummaryQueryKey,
   getListSportsQueryKey,
-  getListMultipliersQueryKey
+  getListMultipliersQueryKey,
 } from "@workspace/api-client-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,31 +23,30 @@ import * as z from "zod";
 import { Switch } from "@/components/ui/switch";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, Dumbbell, Settings, Edit, Trash2, Plus } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Activity, Dumbbell, Settings, Edit, Trash2, Plus, Mountain } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const sportSchema = z.object({
   name: z.string().min(1),
   slug: z.string().min(1),
-  baseMet: z.coerce.number().min(1),
+  baseMet: z.coerce.number().min(0.1),
   icon: z.string().min(1),
-  appliesElevation: z.boolean()
+  appliesElevation: z.boolean(),
 });
 
 type SportFormValues = z.infer<typeof sportSchema>;
 
-function SportFormDialog({ 
-  sport, 
-  open, 
-  setOpen 
-}: { 
-  sport?: any, 
-  open: boolean, 
-  setOpen: (v: boolean) => void 
+function SportFormDialog({
+  sport,
+  open,
+  setOpen,
+}: {
+  sport?: any;
+  open: boolean;
+  setOpen: (v: boolean) => void;
 }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  
   const createSport = useCreateSport();
   const updateSport = useUpdateSport();
 
@@ -59,8 +57,8 @@ function SportFormDialog({
       slug: "",
       baseMet: 5,
       icon: "🏃",
-      appliesElevation: false
-    }
+      appliesElevation: false,
+    },
   });
 
   const onSubmit = (data: SportFormValues) => {
@@ -71,9 +69,9 @@ function SportFormDialog({
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListSportsQueryKey() });
             queryClient.invalidateQueries({ queryKey: getGetCalcSummaryQueryKey() });
-            toast({ title: "Sport updated" });
+            toast({ title: "Sport mis à jour" });
             setOpen(false);
-          }
+          },
         }
       );
     } else {
@@ -83,10 +81,10 @@ function SportFormDialog({
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListSportsQueryKey() });
             queryClient.invalidateQueries({ queryKey: getGetCalcSummaryQueryKey() });
-            toast({ title: "Sport created" });
+            toast({ title: "Sport créé" });
             setOpen(false);
             form.reset();
-          }
+          },
         }
       );
     }
@@ -94,39 +92,71 @@ function SportFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="font-mono bg-card border-border">
+      <DialogContent className="font-mono bg-card border-border w-[calc(100vw-2rem)] max-w-md rounded-xl">
         <DialogHeader>
-          <DialogTitle className="uppercase tracking-wider">{sport ? "Edit Sport" : "New Sport"}</DialogTitle>
+          <DialogTitle className="uppercase tracking-wider">
+            {sport ? "Modifier le sport" : "Nouveau sport"}
+          </DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField control={form.control} name="name" render={({field}) => (
-              <FormItem><FormLabel>Name</FormLabel><FormControl><Input className="bg-secondary/50 border-secondary" {...field} /></FormControl><FormMessage/></FormItem>
+            <FormField control={form.control} name="name" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nom</FormLabel>
+                <FormControl>
+                  <Input className="bg-secondary/50 border-secondary h-12" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )} />
-            <FormField control={form.control} name="slug" render={({field}) => (
-              <FormItem><FormLabel>Slug</FormLabel><FormControl><Input className="bg-secondary/50 border-secondary" {...field} /></FormControl><FormMessage/></FormItem>
+            <FormField control={form.control} name="slug" render={({ field }) => (
+              <FormItem>
+                <FormLabel>Slug</FormLabel>
+                <FormControl>
+                  <Input className="bg-secondary/50 border-secondary h-12" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )} />
             <div className="grid grid-cols-2 gap-4">
-              <FormField control={form.control} name="baseMet" render={({field}) => (
-                <FormItem><FormLabel>Base MET</FormLabel><FormControl><Input type="number" step="0.1" className="bg-secondary/50 border-secondary" {...field} /></FormControl><FormMessage/></FormItem>
+              <FormField control={form.control} name="baseMet" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>MET base</FormLabel>
+                  <FormControl>
+                    <Input type="number" step="0.1" inputMode="decimal" className="bg-secondary/50 border-secondary h-12" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )} />
-              <FormField control={form.control} name="icon" render={({field}) => (
-                <FormItem><FormLabel>Icon/Emoji</FormLabel><FormControl><Input className="bg-secondary/50 border-secondary" {...field} /></FormControl><FormMessage/></FormItem>
+              <FormField control={form.control} name="icon" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Icône</FormLabel>
+                  <FormControl>
+                    <Input className="bg-secondary/50 border-secondary h-12 text-xl" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )} />
             </div>
-            <FormField control={form.control} name="appliesElevation" render={({field}) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border p-3">
-                <div className="space-y-0.5">
-                  <FormLabel>Applies Elevation</FormLabel>
+            <FormField control={form.control} name="appliesElevation" render={({ field }) => (
+              <FormItem className="flex flex-row items-center justify-between rounded-lg border border-border p-4">
+                <div>
+                  <FormLabel className="text-sm">Dénivelé applicable</FormLabel>
+                  <p className="text-xs text-muted-foreground mt-0.5">Course, vélo, randonnée…</p>
                 </div>
                 <FormControl>
                   <Switch checked={field.value} onCheckedChange={field.onChange} />
                 </FormControl>
               </FormItem>
             )} />
-            <div className="flex justify-end pt-4">
-              <Button type="submit" className="uppercase tracking-widest text-xs" disabled={createSport.isPending || updateSport.isPending}>
-                Save Sport
+            <div className="flex justify-end pt-2">
+              <Button
+                type="submit"
+                size="lg"
+                className="uppercase tracking-widest text-xs w-full"
+                disabled={createSport.isPending || updateSport.isPending}
+              >
+                Enregistrer
               </Button>
             </div>
           </form>
@@ -136,7 +166,7 @@ function SportFormDialog({
   );
 }
 
-function MultiplierItem({ multiplier }: { multiplier: any }) {
+function MultiplierCard({ multiplier }: { multiplier: any }) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const updateMultiplier = useUpdateMultiplier();
@@ -150,43 +180,55 @@ function MultiplierItem({ multiplier }: { multiplier: any }) {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListMultipliersQueryKey() });
-          toast({ title: "Multiplier updated" });
-        }
+          toast({ title: "Multiplicateur mis à jour" });
+        },
       }
     );
   };
 
   return (
-    <TableRow>
-      <TableCell className="font-mono">
-        <div className="font-bold text-foreground">{multiplier.label}</div>
-        <div className="text-xs text-muted-foreground truncate max-w-[200px]">{multiplier.description}</div>
-      </TableCell>
-      <TableCell className="font-mono text-xs text-muted-foreground">{multiplier.paramKey}</TableCell>
-      <TableCell className="text-right">
-        <div className="flex items-center justify-end gap-2">
-          <Input 
-            type="number" 
-            step="0.001" 
-            className="w-24 font-mono h-8 text-right bg-secondary/50 border-secondary" 
-            value={val} 
-            onChange={(e) => setVal(e.target.value)} 
-          />
-          <span className="text-xs text-muted-foreground w-8">{multiplier.unit}</span>
-          <Button size="sm" variant="secondary" className="h-8 uppercase text-[10px] tracking-wider" onClick={handleSave} disabled={updateMultiplier.isPending}>
-            Save
-          </Button>
+    <div className="p-4 border-b border-border/50 last:border-0">
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="min-w-0">
+          <div className="font-mono font-bold text-sm text-foreground">{multiplier.label}</div>
+          <div className="text-xs text-muted-foreground mt-0.5">{multiplier.description}</div>
+          <div className="text-xs text-muted-foreground/60 font-mono mt-1">{multiplier.paramKey}</div>
         </div>
-      </TableCell>
-    </TableRow>
+        <div className="text-xs text-muted-foreground font-mono shrink-0 mt-1">
+          [{multiplier.minValue} – {multiplier.maxValue}]
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Input
+          type="number"
+          step="0.001"
+          inputMode="decimal"
+          className="flex-1 font-mono h-11 text-right bg-secondary/50 border-secondary text-lg"
+          value={val}
+          onChange={(e) => setVal(e.target.value)}
+        />
+        <span className="text-xs text-muted-foreground font-mono w-14 shrink-0">{multiplier.unit}</span>
+        <Button
+          size="sm"
+          variant="secondary"
+          className="h-11 px-4 uppercase text-[10px] tracking-wider shrink-0"
+          onClick={handleSave}
+          disabled={updateMultiplier.isPending}
+        >
+          {updateMultiplier.isPending ? "…" : "Sauv."}
+        </Button>
+      </div>
+    </div>
   );
 }
 
 export default function AdminDashboard() {
-  const { data: summary, isLoading: isLoadingSummary } = useGetCalcSummary({ query: { queryKey: getGetCalcSummaryQueryKey() }});
-  const { data: sports } = useListSports({ query: { queryKey: getListSportsQueryKey() }});
-  const { data: multipliers } = useListMultipliers({ query: { queryKey: getListMultipliersQueryKey() }});
-  
+  const { data: summary, isLoading: isLoadingSummary } = useGetCalcSummary({
+    query: { queryKey: getGetCalcSummaryQueryKey() },
+  });
+  const { data: sports } = useListSports({ query: { queryKey: getListSportsQueryKey() } });
+  const { data: multipliers } = useListMultipliers({ query: { queryKey: getListMultipliersQueryKey() } });
+
   const deleteSport = useDeleteSport();
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -195,15 +237,15 @@ export default function AdminDashboard() {
   const [editSport, setEditSport] = React.useState<any>(null);
 
   const handleDeleteSport = (id: number) => {
-    if (confirm("Are you sure?")) {
+    if (confirm("Supprimer ce sport ?")) {
       deleteSport.mutate(
         { id },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListSportsQueryKey() });
             queryClient.invalidateQueries({ queryKey: getGetCalcSummaryQueryKey() });
-            toast({ title: "Sport deleted" });
-          }
+            toast({ title: "Sport supprimé" });
+          },
         }
       );
     }
@@ -211,138 +253,139 @@ export default function AdminDashboard() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8 max-w-6xl space-y-8">
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="container mx-auto px-4 py-6 max-w-6xl space-y-6">
+
+        {/* STATS */}
+        <div className="grid grid-cols-3 gap-3">
           <Card className="border-border bg-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-2">
-                <Dumbbell className="h-4 w-4" /> Total Sports
+            <CardHeader className="pb-1 pt-3 px-3">
+              <CardTitle className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-1.5">
+                <Dumbbell className="h-3 w-3" /> Sports
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold font-mono text-primary">{isLoadingSummary ? "-" : summary?.totalSports}</div>
+            <CardContent className="px-3 pb-3">
+              <div className="text-3xl font-bold font-mono text-primary">
+                {isLoadingSummary ? "-" : summary?.totalSports}
+              </div>
             </CardContent>
           </Card>
           <Card className="border-border bg-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-2">
-                <Settings className="h-4 w-4" /> Active Multipliers
+            <CardHeader className="pb-1 pt-3 px-3">
+              <CardTitle className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-1.5">
+                <Settings className="h-3 w-3" /> Params
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold font-mono text-primary">{isLoadingSummary ? "-" : summary?.totalMultipliers}</div>
+            <CardContent className="px-3 pb-3">
+              <div className="text-3xl font-bold font-mono text-primary">
+                {isLoadingSummary ? "-" : summary?.totalMultipliers}
+              </div>
             </CardContent>
           </Card>
           <Card className="border-border bg-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-xs font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-2">
-                <Activity className="h-4 w-4" /> Avg MET Base
+            <CardHeader className="pb-1 pt-3 px-3">
+              <CardTitle className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider flex items-center gap-1.5">
+                <Activity className="h-3 w-3" /> MET moy.
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-4xl font-bold font-mono text-primary">{isLoadingSummary ? "-" : summary?.avgMet.toFixed(1)}</div>
+            <CardContent className="px-3 pb-3">
+              <div className="text-3xl font-bold font-mono text-primary">
+                {isLoadingSummary ? "-" : summary?.avgMet.toFixed(1)}
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* SPORTS MANAGER */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          {/* SPORTS */}
           <Card className="border-border bg-card overflow-hidden">
-            <CardHeader className="border-b border-border/50 bg-secondary/10 flex flex-row items-center justify-between pb-4">
+            <CardHeader className="border-b border-border/50 bg-secondary/10 flex flex-row items-center justify-between py-3 px-4">
               <div>
-                <CardTitle className="font-mono uppercase tracking-wider text-lg">Sports Dictionary</CardTitle>
-                <CardDescription>Manage activities and base METs</CardDescription>
+                <CardTitle className="font-mono uppercase tracking-wider text-base">Sports</CardTitle>
+                <CardDescription className="text-xs">Activités et valeurs MET</CardDescription>
               </div>
-              <Button size="sm" onClick={() => setCreateOpen(true)} className="uppercase font-mono text-[10px] tracking-wider">
-                <Plus className="h-3 w-3 mr-1" /> New Sport
+              <Button
+                size="sm"
+                onClick={() => setCreateOpen(true)}
+                className="uppercase font-mono text-[10px] tracking-wider h-10 px-3"
+              >
+                <Plus className="h-3 w-3 mr-1" /> Ajouter
               </Button>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-secondary/20">
-                  <TableRow>
-                    <TableHead className="font-mono text-xs uppercase">Sport</TableHead>
-                    <TableHead className="font-mono text-xs uppercase text-right">Base MET</TableHead>
-                    <TableHead className="font-mono text-xs uppercase text-center">Elev.</TableHead>
-                    <TableHead className="text-right"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sports?.map(sport => (
-                    <TableRow key={sport.id}>
-                      <TableCell className="font-mono font-medium">
-                        <span className="mr-2">{sport.icon}</span>
-                        {sport.name}
-                      </TableCell>
-                      <TableCell className="text-right font-mono">{sport.baseMet}</TableCell>
-                      <TableCell className="text-center">
-                        {sport.appliesElevation ? (
-                          <Badge variant="outline" className="text-[10px] text-primary border-primary">YES</Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px] text-muted-foreground">NO</Badge>
+              <div className="divide-y divide-border/50">
+                {sports?.map((sport) => (
+                  <div key={sport.id} className="flex items-center gap-3 px-4 py-3">
+                    <span className="text-2xl shrink-0">{sport.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-mono font-medium text-sm truncate">{sport.name}</div>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-xs text-muted-foreground font-mono">MET {sport.baseMet}</span>
+                        {sport.appliesElevation && (
+                          <Badge variant="outline" className="text-[9px] text-primary border-primary/50 py-0 px-1 h-4">
+                            <Mountain className="h-2.5 w-2.5 mr-0.5" /> dénivelé
+                          </Badge>
                         )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-primary" onClick={() => setEditSport(sport)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={() => handleDeleteSport(sport.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {sports?.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground font-mono text-sm uppercase">
-                        No sports defined
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+                      </div>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 text-muted-foreground hover:text-primary"
+                        onClick={() => setEditSport(sport)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDeleteSport(sport.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                {sports?.length === 0 && (
+                  <div className="text-center py-10 text-muted-foreground font-mono text-xs uppercase">
+                    Aucun sport défini
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
 
-          {/* MULTIPLIERS MANAGER */}
+          {/* MULTIPLIERS */}
           <Card className="border-border bg-card overflow-hidden">
-            <CardHeader className="border-b border-border/50 bg-secondary/10 pb-4">
-              <CardTitle className="font-mono uppercase tracking-wider text-lg">System Multipliers</CardTitle>
-              <CardDescription>Tune the underlying calorie algorithm</CardDescription>
+            <CardHeader className="border-b border-border/50 bg-secondary/10 py-3 px-4">
+              <CardTitle className="font-mono uppercase tracking-wider text-base">Multiplicateurs</CardTitle>
+              <CardDescription className="text-xs">Paramètres de l'algorithme calorique</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader className="bg-secondary/20">
-                  <TableRow>
-                    <TableHead className="font-mono text-xs uppercase">Parameter</TableHead>
-                    <TableHead className="font-mono text-xs uppercase">Key</TableHead>
-                    <TableHead className="font-mono text-xs uppercase text-right">Value</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {multipliers?.map(m => (
-                    <MultiplierItem key={m.id} multiplier={m} />
-                  ))}
-                  {multipliers?.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={3} className="text-center py-8 text-muted-foreground font-mono text-sm uppercase">
-                        No multipliers defined
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
+              {multipliers?.map((m) => (
+                <MultiplierCard key={m.id} multiplier={m} />
+              ))}
+              {multipliers?.length === 0 && (
+                <div className="text-center py-10 text-muted-foreground font-mono text-xs uppercase">
+                  Aucun multiplicateur
+                </div>
+              )}
             </CardContent>
           </Card>
+
         </div>
       </div>
-      
-      {createOpen && <SportFormDialog open={createOpen} setOpen={setCreateOpen} />}
-      {editSport && <SportFormDialog open={!!editSport} setOpen={(v) => !v && setEditSport(null)} sport={editSport} />}
 
+      {createOpen && <SportFormDialog open={createOpen} setOpen={setCreateOpen} />}
+      {editSport && (
+        <SportFormDialog
+          open={!!editSport}
+          setOpen={(v) => !v && setEditSport(null)}
+          sport={editSport}
+        />
+      )}
     </AppLayout>
   );
 }
