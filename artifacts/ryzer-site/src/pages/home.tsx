@@ -207,7 +207,7 @@ export default function Home() {
             <span style={{ background: "linear-gradient(90deg,#2563eb,#f97316)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>LES SOMMETS.</span>
           </h1>
           <p style={{ fontSize: "clamp(0.95rem,2.2vw,1.2rem)", color: "rgba(255,255,255,0.78)", fontWeight: 300, maxWidth: 480, marginBottom: "2rem", lineHeight: 1.65 }}>
-            Le tracker de performance définitif pour les athlètes de trail et de montagne. En cours de développement — sois parmi les premiers à le découvrir.
+            Le tracker de performance définitif pour les athlètes de montagne — trail, ski, alpinisme, vélo et plus encore. En cours de développement — sois parmi les premiers à le découvrir.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.875rem" }}>
             <a href="#cta" style={{ background: "#2563eb", color: "#fff", fontWeight: 700, fontSize: "1rem", padding: "0.875rem 2rem", borderRadius: 999, textDecoration: "none", boxShadow: "0 0 28px rgba(37,99,235,0.3)", display: "inline-block" }}>Être notifié en premier</a>
@@ -220,7 +220,7 @@ export default function Home() {
       <section id="stats" style={{ padding: "4.5rem 0", background: "#f1f5f9", borderTop: "1px solid rgba(15,23,42,0.08)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "2rem" }} className="stats-grid">
-            {[{v:"Bêta",l:"Phase actuelle"},{v:"2025",l:"Lancement visé"},{v:"Trail",l:"Sport cible principal"},{v:"iOS & Android",l:"Plateformes prévues"}].map(s => (
+            {[{v:"Bêta",l:"Phase actuelle"},{v:"2025",l:"Lancement visé"},{v:"Multi-sport",l:"Trail, ski, alpinisme…"},{v:"iOS & Android",l:"Plateformes prévues"}].map(s => (
               <div key={s.l} style={{ borderLeft: "2px solid rgba(37,99,235,0.3)", paddingLeft: "1.25rem" }}>
                 <div style={{ fontSize: "clamp(1.4rem,3vw,2rem)", fontWeight: 900, letterSpacing: "-0.02em", lineHeight: 1, marginBottom: "0.35rem", color: "#0f172a" }}>{s.v}</div>
                 <div style={{ fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.07em", textTransform: "uppercase", color: "rgba(15,23,42,0.5)" }}>{s.l}</div>
@@ -235,7 +235,7 @@ export default function Home() {
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem" }}>
           <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563eb", marginBottom: "0.6rem" }}>Ce que nous construisons</p>
           <h2 style={{ fontSize: "clamp(1.75rem,4vw,2.75rem)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: "0.6rem", color: "#0f172a" }}>Fonctionnalités</h2>
-          <p style={{ fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, maxWidth: 500, marginBottom: "3rem", lineHeight: 1.7 }}>Ryzer est conçu pour les athlètes de trail et de montagne qui veulent aller plus loin.</p>
+          <p style={{ fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, maxWidth: 500, marginBottom: "3rem", lineHeight: 1.7 }}>Ryzer est conçu pour tous les athlètes de montagne — trail, ski de randonnée, alpinisme, VTT — qui veulent aller plus loin.</p>
           {features.length === 0 ? (
             <div style={{ textAlign: "center", padding: "3rem", color: "rgba(15,23,42,0.3)" }}>Les fonctionnalités arrivent bientôt.</div>
           ) : (
@@ -323,7 +323,7 @@ export default function Home() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: "2rem", marginBottom: "2.5rem" }}>
             <div>
               <img src="/logo-bw.png" alt="Ryzer" style={{ height: "1.75rem", borderRadius: 10, objectFit: "contain", opacity: 0.7, marginBottom: "0.875rem" }} />
-              <p style={{ fontSize: "0.8rem", color: "rgba(15,23,42,0.55)", maxWidth: 260, lineHeight: 1.6 }}>Créé par des athlètes, pour des athlètes. La référence pour les sports de montagne et de trail.</p>
+              <p style={{ fontSize: "0.8rem", color: "rgba(15,23,42,0.55)", maxWidth: 260, lineHeight: 1.6 }}>Créé par des athlètes, pour des athlètes. La référence pour tous les sports de montagne.</p>
             </div>
             <div>
               <h4 style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.875rem", color: "#0f172a" }}>Produit</h4>
