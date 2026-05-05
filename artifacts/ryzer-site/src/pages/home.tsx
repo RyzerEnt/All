@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import heroImg from "@assets/pexels-slimmars-13-197677686-13685489_1777999561622.jpg";
 
 interface RoadmapItem {
@@ -8,6 +8,14 @@ interface RoadmapItem {
   status: "planned" | "in-progress" | "done";
   quarter?: string;
   sortOrder?: number;
+}
+
+interface Feature {
+  id: number;
+  title: string;
+  description: string;
+  emoji: string;
+  sortOrder: number;
 }
 
 const BADGE: Record<string, { bg: string; color: string; label: string }> = {
@@ -21,6 +29,9 @@ export default function Home() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [roadmap, setRoadmap] = useState<RoadmapItem[]>([]);
   const [roadmapLoading, setRoadmapLoading] = useState(true);
+  const [features, setFeatures] = useState<Feature[]>([]);
+  const [activeNav, setActiveNav] = useState<string | null>(null);
+  const navTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -40,6 +51,19 @@ export default function Home() {
       .catch(() => {})
       .finally(() => setRoadmapLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetch("/api/features")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setFeatures(data); })
+      .catch(() => {});
+  }, []);
+
+  const handleNavClick = (href: string) => {
+    setActiveNav(href);
+    if (navTimeoutRef.current) clearTimeout(navTimeoutRef.current);
+    navTimeoutRef.current = setTimeout(() => setActiveNav(null), 600);
+  };
 
   const [email, setEmail] = useState("");
   const [waitlistStatus, setWaitlistStatus] = useState<"idle" | "loading" | "success" | "error" | "duplicate">("idle");
@@ -101,19 +125,34 @@ export default function Home() {
           <ul style={{ display: "flex", alignItems: "center", gap: "2rem", listStyle: "none", margin: 0, padding: 0 }}>
             {[["#features","Fonctionnalités"],["#roadmap","Roadmap"],["#stats","Performance"]].map(([href, label]) => (
               <li key={href} style={{ display: "none" }} className="md-show">
-                <a href={href} style={navLinkStyle("")}>{label}</a>
+                <a
+                  href={href}
+                  onClick={() => handleNavClick(href)}
+                  style={{
+                    ...navLinkStyle(""),
+                    display: "inline-block",
+                    transform: activeNav === href ? "scale(0.92)" : "scale(1)",
+                    transition: "transform 0.15s ease, color 0.2s",
+                  }}
+                >{label}</a>
               </li>
             ))}
           </ul>
 
-          <a href="#roadmap" style={{
-            background: scrolled ? "#2563eb" : "#fff",
-            color: scrolled ? "#fff" : "#0f172a",
-            fontWeight: 700, fontSize: "0.8rem",
-            padding: "0.55rem 1.25rem", borderRadius: 999,
-            textDecoration: "none", transition: "all 0.3s",
-            display: "none",
-          }} className="md-show">Roadmap</a>
+          <a
+            href="#roadmap"
+            onClick={() => handleNavClick("#roadmap")}
+            style={{
+              background: scrolled ? "#2563eb" : "#fff",
+              color: scrolled ? "#fff" : "#0f172a",
+              fontWeight: 700, fontSize: "0.8rem",
+              padding: "0.55rem 1.25rem", borderRadius: 999,
+              textDecoration: "none", transition: "all 0.3s",
+              display: "none",
+              transform: activeNav === "#roadmap" ? "scale(0.93)" : "scale(1)",
+            }}
+            className="md-show"
+          >Roadmap</a>
 
           {/* Hamburger */}
           <button
@@ -194,17 +233,22 @@ export default function Home() {
       {/* ═══ FEATURES ═══ */}
       <section id="features" style={{ padding: "5rem 0", background: "#fff" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 1.25rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "3rem", alignItems: "center" }} className="feature-row">
-            <div>
-              <span style={{ display: "inline-flex", padding: "0.25rem 0.8rem", borderRadius: 999, fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.2)", color: "#2563eb", marginBottom: "1.25rem" }}>Intégration seamless</span>
-              <h2 style={{ fontSize: "clamp(1.75rem,4vw,3rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "1rem", color: "#0f172a" }}>Vos données<br />sur votre poignet.</h2>
-              <p style={{ fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, marginBottom: "1.5rem", lineHeight: 1.7 }}>Laissez votre téléphone dans votre sac. L'appli montre Ryzer vous livre les métriques de performance essentielles au bon moment, sans latence.</p>
-              <button style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", color: "#2563eb", fontWeight: 700, fontSize: "0.95rem", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Voir les appareils compatibles →</button>
+          <p style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563eb", marginBottom: "0.6rem" }}>Ce que nous construisons</p>
+          <h2 style={{ fontSize: "clamp(1.75rem,4vw,2.75rem)", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: "0.6rem", color: "#0f172a" }}>Fonctionnalités</h2>
+          <p style={{ fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, maxWidth: 500, marginBottom: "3rem", lineHeight: 1.7 }}>Ryzer est conçu pour les athlètes de trail et de montagne qui veulent aller plus loin.</p>
+          {features.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "3rem", color: "rgba(15,23,42,0.3)" }}>Les fonctionnalités arrivent bientôt.</div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(260px,1fr))", gap: "1.25rem" }}>
+              {features.map(f => (
+                <div key={f.id} style={{ background: "#f8fafc", border: "1px solid rgba(15,23,42,0.07)", borderRadius: "1.25rem", padding: "1.6rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                  <span style={{ fontSize: "2rem", lineHeight: 1 }}>{f.emoji}</span>
+                  <div style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a" }}>{f.title}</div>
+                  {f.description && <div style={{ fontSize: "0.875rem", color: "rgba(15,23,42,0.55)", lineHeight: 1.6 }}>{f.description}</div>}
+                </div>
+              ))}
             </div>
-            <div style={{ position: "relative", textAlign: "center" }}>
-              <img src="/smartwatch-stats.png" alt="Interface montre connectée" loading="lazy" style={{ width: "100%", maxWidth: 360, margin: "0 auto", borderRadius: "1.5rem", border: "1px solid rgba(15,23,42,0.08)", boxShadow: "0 20px 60px rgba(0,0,0,0.1)" }} />
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -310,6 +354,7 @@ export default function Home() {
 
       {/* Responsive styles */}
       <style>{`
+        html { scroll-behavior: smooth; }
         html, body { background: #08090f; }
         .md-show { display: none !important; }
         .md-hide { display: flex !important; }
@@ -321,7 +366,8 @@ export default function Home() {
         @media (min-width: 720px) { .stats-grid { grid-template-columns: repeat(4,1fr); } }
         .feature-row { grid-template-columns: 1fr; }
         @media (min-width: 768px) { .feature-row { grid-template-columns: 1fr 1fr; gap: 5rem !important; } }
-
+        .nav-link { transition: transform 0.15s ease, opacity 0.15s ease; }
+        .nav-link:active { transform: scale(0.9) !important; opacity: 0.7; }
       `}</style>
     </div>
   );

@@ -19,3 +19,4 @@
 
 export * from "./roadmap";
 export * from "./waitlist";
+export * from "./features";

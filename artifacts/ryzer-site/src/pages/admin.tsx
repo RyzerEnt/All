@@ -56,6 +56,14 @@ interface WaitlistEntry {
   createdAt: string;
 }
 
+interface Feature {
+  id: number;
+  title: string;
+  description: string;
+  emoji: string;
+  sortOrder: number;
+}
+
 const STATUS_LABELS: Record<string, string> = {
   planned: "Planifie",
   "in-progress": "En cours",
@@ -71,10 +79,15 @@ const STATUS_COLORS: Record<string, string> = {
 export default function Admin() {
   const { toast } = useToast();
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("admin_token"));
-  const [tab, setTab] = useState<"roadmap" | "waitlist">("roadmap");
+  const [tab, setTab] = useState<"roadmap" | "features" | "waitlist">("roadmap");
   const [items, setItems] = useState<RoadmapItem[]>([]);
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
   const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [features, setFeatures] = useState<Feature[]>([]);
+  const [featuresLoading, setFeaturesLoading] = useState(false);
+  const [editingFeature, setEditingFeature] = useState<Feature | null>(null);
+  const [showFeatureForm, setShowFeatureForm] = useState(false);
+  const [featureForm, setFeatureForm] = useState({ title: "", description: "", emoji: "✨", sortOrder: 0 });
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<RoadmapItem | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -140,7 +153,56 @@ export default function Admin() {
 
   useEffect(() => {
     if (token && tab === "waitlist") fetchWaitlist();
+    if (token && tab === "features") fetchFeatures();
   }, [token, tab]);
+
+  async function fetchFeatures() {
+    setFeaturesLoading(true);
+    try {
+      const res = await fetch(`${API}/features`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json() as Feature[];
+      setFeatures(data);
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de charger les fonctionnalités", variant: "destructive" });
+    } finally {
+      setFeaturesLoading(false);
+    }
+  }
+
+  async function saveFeature() {
+    setLoading(true);
+    try {
+      const url = editingFeature ? `${API}/features/${editingFeature.id}` : `${API}/features`;
+      const method = editingFeature ? "PUT" : "POST";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(featureForm),
+      });
+      if (!res.ok) throw new Error("Echec");
+      toast({ title: editingFeature ? "Fonctionnalité mise à jour" : "Fonctionnalité ajoutée" });
+      setShowFeatureForm(false);
+      setEditingFeature(null);
+      setFeatureForm({ title: "", description: "", emoji: "✨", sortOrder: 0 });
+      await fetchFeatures();
+    } catch {
+      toast({ title: "Erreur", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function deleteFeature(id: number) {
+    if (!confirm("Supprimer cette fonctionnalité ?")) return;
+    await fetch(`${API}/features/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+    await fetchFeatures();
+  }
+
+  function startEditFeature(f: Feature) {
+    setEditingFeature(f);
+    setFeatureForm({ title: f.title, description: f.description, emoji: f.emoji, sortOrder: f.sortOrder });
+    setShowFeatureForm(true);
+  }
 
   async function onSubmitItem(data: ItemValues) {
     setLoading(true);
@@ -260,16 +322,19 @@ export default function Admin() {
 
       <main className="max-w-5xl mx-auto px-6 py-10">
         {/* Tabs */}
-        <div className="flex gap-1 mb-8 bg-white/5 rounded-xl p-1 w-fit">
-          {(["roadmap", "waitlist"] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => { setTab(t); setShowForm(false); setEditing(null); }}
-              className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === t ? "bg-primary text-white shadow" : "text-white/50 hover:text-white"}`}
-            >
-              {t === "roadmap" ? `Roadmap (${items.length})` : `Waitlist (${waitlist.length})`}
-            </button>
-          ))}
+        <div className="flex gap-1 mb-8 bg-white/5 rounded-xl p-1 w-fit flex-wrap">
+          <button
+            onClick={() => { setTab("roadmap"); setShowForm(false); setEditing(null); }}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === "roadmap" ? "bg-primary text-white shadow" : "text-white/50 hover:text-white"}`}
+          >Roadmap ({items.length})</button>
+          <button
+            onClick={() => { setTab("features"); setShowFeatureForm(false); setEditingFeature(null); }}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === "features" ? "bg-primary text-white shadow" : "text-white/50 hover:text-white"}`}
+          >Fonctionnalités ({features.length})</button>
+          <button
+            onClick={() => setTab("waitlist")}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === "waitlist" ? "bg-primary text-white shadow" : "text-white/50 hover:text-white"}`}
+          >Waitlist ({waitlist.length})</button>
         </div>
 
         {tab === "roadmap" && (<>
@@ -399,6 +464,108 @@ export default function Admin() {
           </div>
         )}
         </>)}
+
+        {tab === "features" && (
+          <div>
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h1 className="text-2xl font-bold text-white">Fonctionnalités</h1>
+                <p className="text-white/50 text-sm mt-1">{features.length} fonctionnalité{features.length !== 1 ? "s" : ""}</p>
+              </div>
+              {!showFeatureForm && (
+                <Button onClick={() => { setEditingFeature(null); setFeatureForm({ title: "", description: "", emoji: "✨", sortOrder: features.length }); setShowFeatureForm(true); }} className="bg-primary hover:bg-primary/90 text-white rounded-xl">
+                  + Ajouter
+                </Button>
+              )}
+            </div>
+
+            {showFeatureForm && (
+              <div className="bg-card/50 border border-white/5 rounded-2xl p-6 mb-8">
+                <h2 className="text-lg font-semibold text-white mb-6">{editingFeature ? "Modifier" : "Nouvelle fonctionnalité"}</h2>
+                <div className="space-y-5">
+                  <div className="grid sm:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm text-white/80 mb-1.5 font-medium">Titre</label>
+                      <Input
+                        value={featureForm.title}
+                        onChange={e => setFeatureForm(f => ({ ...f, title: e.target.value }))}
+                        placeholder="Ex: Analyse de performance"
+                        className="bg-background/50 border-white/10 text-white focus-visible:ring-primary"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-white/80 mb-1.5 font-medium">Emoji</label>
+                      <Input
+                        value={featureForm.emoji}
+                        onChange={e => setFeatureForm(f => ({ ...f, emoji: e.target.value }))}
+                        placeholder="✨"
+                        className="bg-background/50 border-white/10 text-white focus-visible:ring-primary"
+                        maxLength={4}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-white/80 mb-1.5 font-medium">Description</label>
+                    <Textarea
+                      value={featureForm.description}
+                      onChange={e => setFeatureForm(f => ({ ...f, description: e.target.value }))}
+                      placeholder="Décrivez la fonctionnalité..."
+                      className="bg-background/50 border-white/10 text-white focus-visible:ring-primary resize-none"
+                      rows={3}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-white/80 mb-1.5 font-medium">Ordre d'affichage</label>
+                    <Input
+                      type="number"
+                      value={featureForm.sortOrder}
+                      onChange={e => setFeatureForm(f => ({ ...f, sortOrder: Number(e.target.value) }))}
+                      className="bg-background/50 border-white/10 text-white focus-visible:ring-primary w-32"
+                    />
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <Button onClick={saveFeature} disabled={loading || !featureForm.title} className="bg-primary hover:bg-primary/90 text-white rounded-xl">
+                      {loading ? "Enregistrement..." : editingFeature ? "Mettre à jour" : "Ajouter"}
+                    </Button>
+                    <Button variant="outline" onClick={() => { setShowFeatureForm(false); setEditingFeature(null); }} className="border-white/10 text-white/70 hover:text-white rounded-xl">
+                      Annuler
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {featuresLoading ? (
+              <div className="text-center py-20 text-white/30">Chargement...</div>
+            ) : features.length === 0 ? (
+              <div className="text-center py-20 text-white/30">
+                <p className="text-lg">Aucune fonctionnalité pour le moment.</p>
+                <p className="text-sm mt-1">Cliquez sur "Ajouter" pour créer la première.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {features.map(f => (
+                  <div key={f.id} className="flex items-center gap-4 bg-card/40 border border-white/5 rounded-xl px-5 py-4 hover:bg-white/5 transition-colors">
+                    <span className="text-2xl flex-shrink-0">{f.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <span className="text-white font-semibold">{f.title}</span>
+                      {f.description && <p className="text-white/50 text-sm truncate mt-0.5">{f.description}</p>}
+                    </div>
+                    <span className="text-white/20 text-xs flex-shrink-0">#{f.sortOrder}</span>
+                    <div className="flex gap-2 flex-shrink-0">
+                      <Button size="sm" variant="outline" onClick={() => startEditFeature(f)} className="border-white/10 text-white/70 hover:text-white rounded-lg text-xs">
+                        Modifier
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => deleteFeature(f.id)} className="border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg text-xs">
+                        Supprimer
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {tab === "waitlist" && (
           <div>
