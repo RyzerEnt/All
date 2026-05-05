@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import heroImg from "@assets/montagne_1777999207698.webp";
+import heroImg from "@assets/pexels-slimmars-13-197677686-13685489_1777999561622.jpg";
 
 interface RoadmapItem {
   id: number;
