@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import heroImg from "@assets/montagne_1777999207698.webp";
 
 interface RoadmapItem {
   id: number;
@@ -119,19 +120,10 @@ export default function Home() {
         display: "flex", alignItems: "center",
         background: "#08090f", overflow: "hidden",
       }}>
-        {/* Desktop image */}
         <img
-          src="/hero-nature.png"
-          alt="Coureur de trail en montagne"
-          className="hero-img-desktop"
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 30%", display: "block", zIndex: 0 }}
-        />
-        {/* Mobile portrait image */}
-        <img
-          src="/hero-nature-mobile.png"
-          alt="Coureur de trail en montagne"
-          className="hero-img-mobile"
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top", display: "none", zIndex: 0 }}
+          src={heroImg}
+          alt="Alpiniste au sommet en montagne"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center center", display: "block", zIndex: 0 }}
         />
         <div style={{ position: "absolute", inset: 0, zIndex: 1, background: "linear-gradient(to top, #f1f5f9 0%, rgba(7,8,15,0.45) 50%, rgba(7,8,15,0.2) 100%)" }} />
         <div style={{ position: "relative", zIndex: 2, maxWidth: 1200, margin: "0 auto", padding: "5rem 1.25rem 0", width: "100%" }}>
@@ -279,13 +271,6 @@ export default function Home() {
         .feature-row { grid-template-columns: 1fr; }
         @media (min-width: 768px) { .feature-row { grid-template-columns: 1fr 1fr; gap: 5rem !important; } }
 
-        /* Hero image swap: mobile gets portrait, desktop gets landscape */
-        .hero-img-mobile { display: none !important; }
-        .hero-img-desktop { display: block !important; }
-        @media (max-width: 767px) {
-          .hero-img-mobile { display: block !important; }
-          .hero-img-desktop { display: none !important; }
-        }
       `}</style>
     </div>
   );
