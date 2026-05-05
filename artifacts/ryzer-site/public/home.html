@@ -14,21 +14,19 @@
       --blue: #2563eb;
       --blue-glow: rgba(37, 99, 235, 0.2);
       --orange: #f97316;
-      --white: #0f172a;
+      --fg: #0f172a;
       --muted: rgba(15, 23, 42, 0.55);
       --border: rgba(15, 23, 42, 0.1);
     }
 
     html { scroll-behavior: smooth; }
-
     body {
       background: var(--bg);
-      color: var(--white);
+      color: var(--fg);
       font-family: system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
       line-height: 1.6;
       -webkit-font-smoothing: antialiased;
     }
-
     a { color: inherit; text-decoration: none; }
     img { display: block; max-width: 100%; }
 
@@ -55,160 +53,88 @@
       padding: 1rem 0;
       border-color: var(--border);
     }
-    .nav-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
+    .nav-inner { display: flex; align-items: center; justify-content: space-between; }
     .nav-logo { height: 2.5rem; border-radius: 0.75rem; object-fit: contain; }
     .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 2.5rem;
-      font-size: 0.875rem;
-      font-weight: 500;
+      display: flex; align-items: center; gap: 2.5rem;
+      font-size: 0.875rem; font-weight: 500;
       color: rgba(255,255,255,0.85);
-      list-style: none;
-      transition: color 0.3s;
+      list-style: none; transition: color 0.3s;
     }
     nav.scrolled .nav-links { color: rgba(15,23,42,0.7); }
     .nav-links a:hover { color: #fff; }
     nav.scrolled .nav-links a:hover { color: var(--blue); }
     .btn-nav {
-      background: #fff;
-      color: #0f172a;
-      font-weight: 700;
-      font-size: 0.875rem;
-      padding: 0.6rem 1.4rem;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      transition: opacity 0.2s;
+      background: #fff; color: #0f172a;
+      font-weight: 700; font-size: 0.875rem;
+      padding: 0.6rem 1.4rem; border-radius: 999px;
+      border: none; cursor: pointer; transition: opacity 0.2s;
     }
-    nav.scrolled .btn-nav {
-      background: var(--blue);
-      color: #fff;
-    }
+    nav.scrolled .btn-nav { background: var(--blue); color: #fff; }
     .btn-nav:hover { opacity: 0.88; }
     @media (max-width: 640px) { .nav-links { display: none; } }
 
     /* ── HERO ── */
     #hero {
-      position: relative;
-      min-height: 100dvh;
-      display: flex;
-      align-items: center;
-      padding-top: 5rem;
-      overflow: hidden;
+      position: relative; min-height: 100dvh;
+      display: flex; align-items: center;
+      padding-top: 5rem; overflow: hidden;
     }
-    .hero-bg {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-    }
-    .hero-bg img {
-      width: 100%; height: 100%;
-      object-fit: cover;
-      object-position: center;
-    }
+    .hero-bg { position: absolute; inset: 0; z-index: 0; }
+    .hero-bg img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
     .hero-overlay {
-      position: absolute;
-      inset: 0;
+      position: absolute; inset: 0;
       background: linear-gradient(to top, #ffffff 0%, rgba(7,8,15,0.52) 55%, rgba(7,8,15,0.18) 100%);
     }
-    .hero-content {
-      position: relative;
-      z-index: 1;
-      max-width: 780px;
-    }
+    .hero-content { position: relative; z-index: 1; max-width: 780px; }
     .hero-h1 {
       font-size: clamp(3rem, 8vw, 6rem);
-      font-weight: 900;
-      letter-spacing: -0.03em;
-      line-height: 1.05;
-      text-transform: uppercase;
-      margin-bottom: 1.5rem;
-      color: #fff;
+      font-weight: 900; letter-spacing: -0.03em;
+      line-height: 1.05; text-transform: uppercase;
+      margin-bottom: 1.5rem; color: #fff;
     }
     .hero-h1 .accent {
       background: linear-gradient(90deg, var(--blue), var(--orange));
-      -webkit-background-clip: text;
-      background-clip: text;
+      -webkit-background-clip: text; background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     .hero-sub {
       font-size: clamp(1rem, 2.2vw, 1.25rem);
-      color: rgba(255,255,255,0.75);
-      font-weight: 300;
-      max-width: 520px;
-      margin-bottom: 2.5rem;
+      color: rgba(255,255,255,0.75); font-weight: 300;
+      max-width: 520px; margin-bottom: 2.5rem;
     }
     .hero-ctas { display: flex; flex-wrap: wrap; gap: 1rem; }
     .btn-primary {
-      background: var(--blue);
-      color: #fff;
-      font-weight: 700;
-      font-size: 1.05rem;
-      padding: 1rem 2.2rem;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
+      background: var(--blue); color: #fff;
+      font-weight: 700; font-size: 1.05rem;
+      padding: 1rem 2.2rem; border-radius: 999px;
+      border: none; cursor: pointer;
       box-shadow: 0 0 32px var(--blue-glow);
       transition: box-shadow 0.25s, transform 0.2s;
     }
     .btn-primary:hover { box-shadow: 0 0 55px var(--blue-glow); transform: translateY(-1px); }
     .btn-outline {
-      background: transparent;
-      color: #fff;
-      font-weight: 600;
-      font-size: 1.05rem;
-      padding: 1rem 2.2rem;
-      border-radius: 999px;
+      background: transparent; color: #fff;
+      font-weight: 600; font-size: 1.05rem;
+      padding: 1rem 2.2rem; border-radius: 999px;
       border: 1px solid rgba(255,255,255,0.3);
-      cursor: pointer;
-      transition: background 0.2s;
+      cursor: pointer; transition: background 0.2s;
     }
     .btn-outline:hover { background: rgba(255,255,255,0.1); }
 
     /* ── STATS ── */
-    #stats {
-      padding: 6rem 0;
-      border-top: 1px solid var(--border);
-      background: var(--card);
-    }
+    #stats { padding: 6rem 0; border-top: 1px solid var(--border); background: var(--card); }
     .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 2.5rem 3rem;
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 2.5rem 3rem;
     }
     @media (min-width: 720px) { .stats-grid { grid-template-columns: repeat(4, 1fr); } }
-    .stat {
-      border-left: 2px solid rgba(37,99,235,0.35);
-      padding-left: 1.5rem;
-    }
-    .stat-value {
-      font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 900;
-      letter-spacing: -0.02em;
-      line-height: 1;
-      margin-bottom: 0.4rem;
-    }
-    .stat-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
+    .stat { border-left: 2px solid rgba(37,99,235,0.35); padding-left: 1.5rem; }
+    .stat-value { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; letter-spacing: -0.02em; line-height: 1; margin-bottom: 0.4rem; }
+    .stat-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 
-    /* ── FEATURES ── */
+    /* ── FEATURE ── */
     #features { padding: 7rem 0; }
-    .feature-row {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 4rem;
-      align-items: center;
-    }
+    .feature-row { display: grid; grid-template-columns: 1fr; gap: 4rem; align-items: center; }
     @media (min-width: 768px) {
       .feature-row { grid-template-columns: 1fr 1fr; gap: 6rem; }
       .feature-row.reverse .feature-img { order: 2; }
@@ -216,206 +142,106 @@
     }
     .feature-img { position: relative; }
     .feature-img img {
-      width: 100%;
-      max-width: 380px;
-      margin: 0 auto;
-      border-radius: 1.5rem;
-      border: 1px solid var(--border);
-      box-shadow: 0 30px 80px rgba(0,0,0,0.5);
-    }
-    .glow-blue {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at center, rgba(37,99,235,0.22) 0%, transparent 70%);
-      pointer-events: none;
+      width: 100%; max-width: 380px; margin: 0 auto;
+      border-radius: 1.5rem; border: 1px solid var(--border);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.12);
     }
     .glow-orange {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at center, rgba(249,115,22,0.18) 0%, transparent 70%);
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(249,115,22,0.12) 0%, transparent 70%);
       pointer-events: none;
     }
     .tag {
-      display: inline-flex;
-      align-items: center;
-      padding: 0.3rem 0.9rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 1.5rem;
+      display: inline-flex; align-items: center;
+      padding: 0.3rem 0.9rem; border-radius: 999px;
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 1.5rem;
     }
-    .tag-orange { background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.25); color: var(--orange); }
-    .tag-blue   { background: rgba(37,99,235,0.1);  border: 1px solid rgba(37,99,235,0.25);  color: var(--blue); }
-    .feature-h2 {
-      font-size: clamp(2rem, 4vw, 3.2rem);
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1.1;
-      margin-bottom: 1.25rem;
-    }
+    .tag-blue { background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.25); color: var(--blue); }
+    .feature-h2 { font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 1.25rem; }
     .feature-p { font-size: 1.1rem; color: var(--muted); font-weight: 300; margin-bottom: 1.75rem; }
-    .check-list { list-style: none; display: flex; flex-direction: column; gap: 0.85rem; }
-    .check-list li {
-      display: flex;
-      align-items: center;
-      gap: 0.9rem;
-      font-size: 1rem;
-      font-weight: 500;
-      color: rgba(15,23,42,0.8);
-    }
-    .check-icon {
-      flex-shrink: 0;
-      width: 1.4rem; height: 1.4rem;
-      border-radius: 50%;
-      background: rgba(37,99,235,0.18);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--blue);
-    }
     .link-arrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      color: var(--blue);
-      font-weight: 700;
-      font-size: 1rem;
-      transition: gap 0.2s;
-      border: none;
-      background: none;
-      cursor: pointer;
-      padding: 0;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      color: var(--blue); font-weight: 700; font-size: 1rem;
+      transition: gap 0.2s; border: none; background: none; cursor: pointer; padding: 0;
     }
     .link-arrow:hover { gap: 0.7rem; }
 
-    /* ── QUOTE ── */
-    #quote { padding: 5rem 0; }
-    .quote-wrap {
-      position: relative;
-      border-radius: 2rem;
-      overflow: hidden;
-      aspect-ratio: 21/9;
+    /* ── ROADMAP ── */
+    #roadmap { padding: 7rem 0; background: var(--card); border-top: 1px solid var(--border); }
+    .section-label {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--blue); margin-bottom: 0.75rem;
     }
-    @media (max-width: 640px) { .quote-wrap { aspect-ratio: 16/9; } }
-    .quote-wrap img { width: 100%; height: 100%; object-fit: cover; }
-    .quote-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(7,8,15,0.92) 0%, rgba(7,8,15,0.4) 60%, transparent 100%);
+    .section-title { font-size: clamp(2rem, 4vw, 3rem); font-weight: 900; letter-spacing: -0.03em; margin-bottom: 0.75rem; }
+    .section-sub { font-size: 1.1rem; color: var(--muted); font-weight: 300; max-width: 540px; margin-bottom: 3.5rem; }
+
+    .roadmap-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; }
+    @media (min-width: 640px) { .roadmap-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 1024px) { .roadmap-grid { grid-template-columns: repeat(3, 1fr); } }
+
+    .roadmap-card {
+      background: #fff; border: 1px solid var(--border);
+      border-radius: 1.25rem; padding: 1.5rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      transition: box-shadow 0.2s, transform 0.2s;
     }
-    .quote-body {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      padding: clamp(1.5rem, 5vw, 4rem);
+    .roadmap-card:hover { box-shadow: 0 8px 32px rgba(0,0,0,0.08); transform: translateY(-2px); }
+    .roadmap-badge {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      padding: 0.2rem 0.7rem; border-radius: 999px;
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 1rem;
     }
-    .quote-text {
-      font-size: clamp(1rem, 2.5vw, 1.6rem);
-      font-style: italic;
-      font-weight: 300;
-      color: rgba(248,250,252,0.92);
-      max-width: 700px;
-      margin-bottom: 1rem;
-    }
-    .quote-author {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--blue);
-    }
+    .badge-planned { background: rgba(37,99,235,0.1); color: #2563eb; }
+    .badge-in-progress { background: rgba(249,115,22,0.12); color: #f97316; }
+    .badge-done { background: rgba(22,163,74,0.1); color: #16a34a; }
+    .roadmap-quarter { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
+    .roadmap-title { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .roadmap-desc { font-size: 0.875rem; color: var(--muted); line-height: 1.5; }
+
+    .roadmap-empty { text-align: center; padding: 3rem; color: var(--muted); font-size: 1rem; }
 
     /* ── CTA ── */
     #cta {
-      padding: 8rem 0;
-      border-top: 1px solid var(--border);
-      position: relative;
-      overflow: hidden;
-      text-align: center;
+      padding: 8rem 0; border-top: 1px solid var(--border);
+      position: relative; overflow: hidden; text-align: center;
     }
     #cta::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at center, rgba(37,99,235,0.07) 0%, transparent 70%);
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at center, rgba(37,99,235,0.05) 0%, transparent 70%);
     }
     .cta-h2 {
-      position: relative;
-      font-size: clamp(2.5rem, 7vw, 5.5rem);
-      font-weight: 900;
-      letter-spacing: -0.04em;
-      text-transform: uppercase;
-      line-height: 1;
-      margin-bottom: 1.25rem;
+      position: relative; font-size: clamp(2.5rem, 7vw, 5.5rem);
+      font-weight: 900; letter-spacing: -0.04em;
+      text-transform: uppercase; line-height: 1; margin-bottom: 1.25rem;
     }
-    .cta-sub {
-      position: relative;
-      font-size: 1.15rem;
-      color: var(--muted);
-      font-weight: 300;
-      max-width: 520px;
-      margin: 0 auto 2.5rem;
-    }
+    .cta-sub { position: relative; font-size: 1.15rem; color: var(--muted); font-weight: 300; max-width: 520px; margin: 0 auto 2.5rem; }
     .btn-cta {
-      position: relative;
-      display: inline-block;
-      background: var(--blue);
-      color: #fff;
-      font-weight: 900;
-      font-size: 1.1rem;
-      letter-spacing: -0.01em;
-      padding: 1.2rem 3.5rem;
-      border-radius: 999px;
-      border: none;
-      cursor: pointer;
+      position: relative; display: inline-block;
+      background: var(--blue); color: #fff;
+      font-weight: 900; font-size: 1.1rem; letter-spacing: -0.01em;
+      padding: 1.2rem 3.5rem; border-radius: 999px; border: none; cursor: pointer;
       box-shadow: 0 0 50px rgba(37,99,235,0.25);
       transition: transform 0.25s, box-shadow 0.25s;
     }
     .btn-cta:hover { transform: scale(1.04); box-shadow: 0 0 80px rgba(37,99,235,0.4); }
 
     /* ── FOOTER ── */
-    footer {
-      background: var(--bg);
-      border-top: 1px solid var(--border);
-      padding: 4rem 0 2.5rem;
-    }
-    .footer-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 2.5rem;
-      margin-bottom: 3.5rem;
-    }
+    footer { background: var(--bg); border-top: 1px solid var(--border); padding: 4rem 0 2.5rem; }
+    .footer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; margin-bottom: 3.5rem; }
     @media (min-width: 640px) { .footer-grid { grid-template-columns: 2fr 1fr 1fr; } }
-    .footer-brand img {
-      height: 2rem;
-      border-radius: 0.75rem;
-      object-fit: contain;
-      opacity: 0.75;
-      margin-bottom: 1rem;
-    }
+    .footer-brand img { height: 2rem; border-radius: 0.75rem; object-fit: contain; opacity: 0.75; margin-bottom: 1rem; }
     .footer-brand p { font-size: 0.85rem; color: var(--muted); max-width: 280px; }
-    .footer-col h4 {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 1rem;
-    }
+    .footer-col h4 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 1rem; }
     .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
     .footer-col a { font-size: 0.875rem; color: var(--muted); transition: color 0.2s; }
     .footer-col a:hover { color: var(--blue); }
     .footer-bottom {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 1rem;
-      padding-top: 2rem;
-      border-top: 1px solid var(--border);
-      font-size: 0.8rem;
-      color: rgba(248,250,252,0.3);
+      display: flex; flex-wrap: wrap; justify-content: space-between;
+      align-items: center; gap: 1rem; padding-top: 2rem;
+      border-top: 1px solid var(--border); font-size: 0.8rem; color: var(--muted);
     }
-    .footer-bottom a { transition: color 0.2s; }
-    .footer-bottom a:hover { color: var(--white); }
     .footer-links { display: flex; gap: 1.5rem; }
   </style>
 </head>
@@ -427,7 +253,7 @@
       <a href="/"><img src="/logo-color.png" alt="Ryzer" class="nav-logo" /></a>
       <ul class="nav-links">
         <li><a href="#features">Fonctionnalites</a></li>
-        <li><a href="#quote">Athletes</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
         <li><a href="#stats">Performance</a></li>
       </ul>
       <a href="#cta" class="btn-nav">Telecharger</a>
@@ -460,22 +286,10 @@
   <section id="stats">
     <div class="container">
       <div class="stats-grid">
-        <div class="stat">
-          <div class="stat-value">250K+</div>
-          <div class="stat-label">Athletes actifs</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value">14M</div>
-          <div class="stat-label">Metres de denivele enregistres</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value">50 000</div>
-          <div class="stat-label">Sentiers cartographies</div>
-        </div>
-        <div class="stat">
-          <div class="stat-value">12</div>
-          <div class="stat-label">Equipes professionnelles</div>
-        </div>
+        <div class="stat"><div class="stat-value">250K+</div><div class="stat-label">Athletes actifs</div></div>
+        <div class="stat"><div class="stat-value">14M</div><div class="stat-label">Metres de denivele enregistres</div></div>
+        <div class="stat"><div class="stat-value">50 000</div><div class="stat-label">Sentiers cartographies</div></div>
+        <div class="stat"><div class="stat-value">12</div><div class="stat-label">Equipes professionnelles</div></div>
       </div>
     </div>
   </section>
@@ -483,44 +297,7 @@
   <!-- FEATURES -->
   <section id="features">
     <div class="container">
-
-      <!-- Feature 1 -->
-      <div class="feature-row" style="margin-bottom: 7rem;">
-        <div class="feature-img">
-          <div class="glow-blue"></div>
-          <img src="/app-ui-mockup.png" alt="Interface de l'application Ryzer" />
-        </div>
-        <div class="feature-text">
-          <div class="tag tag-orange">Metriques de precision</div>
-          <h2 class="feature-h2">Chaque metre<br/>compte.</h2>
-          <p class="feature-p">
-            Notre algorithme altimetrique proprietary filtre le bruit pour vous offrir les donnees d'elevation les plus precises. Parce que sur une pente a 20%, chaque pas compte.
-          </p>
-          <ul class="check-list">
-            <li>
-              <span class="check-icon">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              </span>
-              Analyse du gradient en temps reel
-            </li>
-            <li>
-              <span class="check-icon">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              </span>
-              Superposition frequence cardiaque / altitude
-            </li>
-            <li>
-              <span class="check-icon">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              </span>
-              Rappels nutritionnels bases sur l'effort
-            </li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Feature 2 -->
-      <div class="feature-row reverse">
+      <div class="feature-row">
         <div class="feature-text">
           <div class="tag tag-blue">Integration seamless</div>
           <h2 class="feature-h2">Vos donnees<br/>sur votre poignet.</h2>
@@ -533,25 +310,20 @@
         </div>
         <div class="feature-img">
           <div class="glow-orange"></div>
-          <img src="/smartwatch-stats.png" alt="Interface montre connectee" />
+          <img src="/smartwatch-stats.png" alt="Interface montre connectee" loading="lazy" />
         </div>
       </div>
-
     </div>
   </section>
 
-  <!-- QUOTE -->
-  <section id="quote">
+  <!-- ROADMAP -->
+  <section id="roadmap">
     <div class="container">
-      <div class="quote-wrap">
-        <img src="/trail-runner.png" alt="Coureur a l'aube en montagne" loading="lazy" />
-        <div class="quote-overlay"></div>
-        <div class="quote-body">
-          <p class="quote-text">
-            "Ryzer ne se contente pas de suivre mes sorties. Il comprend la montagne. C'est la seule appli en laquelle j'ai confiance au-dessus de 3 000 metres."
-          </p>
-          <p class="quote-author">— Sarah Jenkins, Finaliste UTMB</p>
-        </div>
+      <p class="section-label">Ce qui arrive</p>
+      <h2 class="section-title">Roadmap</h2>
+      <p class="section-sub">Decouvrez les fonctionnalites en cours de developpement et celles qui arrivent prochainement.</p>
+      <div class="roadmap-grid" id="roadmap-grid">
+        <div class="roadmap-empty">Chargement de la roadmap...</div>
       </div>
     </div>
   </section>
@@ -575,7 +347,7 @@
           <h4>Produit</h4>
           <ul>
             <li><a href="#features">Fonctionnalites</a></li>
-            <li><a href="#">Tarifs</a></li>
+            <li><a href="#roadmap">Roadmap</a></li>
             <li><a href="#">Appareils compatibles</a></li>
             <li><a href="#">Mises a jour</a></li>
           </ul>
@@ -600,12 +372,45 @@
     </div>
   </footer>
 
-  <!-- Minimal JS: nav scroll effect only -->
   <script>
+    // Nav scroll effect
     const nav = document.getElementById('nav');
     window.addEventListener('scroll', () => {
       nav.classList.toggle('scrolled', window.scrollY > 50);
     }, { passive: true });
+
+    // Load roadmap from API
+    const BADGE = {
+      'planned': ['badge-planned', 'Planifie'],
+      'in-progress': ['badge-in-progress', 'En cours'],
+      'done': ['badge-done', 'Termine'],
+    };
+
+    async function loadRoadmap() {
+      const grid = document.getElementById('roadmap-grid');
+      try {
+        const res = await fetch('/api/roadmap');
+        const items = await res.json();
+        if (!Array.isArray(items) || items.length === 0) {
+          grid.innerHTML = '<div class="roadmap-empty">Aucun element dans la roadmap pour le moment.</div>';
+          return;
+        }
+        grid.innerHTML = items.map(item => {
+          const [cls, label] = BADGE[item.status] || ['badge-planned', item.status];
+          return `
+            <div class="roadmap-card">
+              <span class="roadmap-badge ${cls}">${label}</span>
+              ${item.quarter ? `<div class="roadmap-quarter">${item.quarter}</div>` : ''}
+              <div class="roadmap-title">${item.title}</div>
+              ${item.description ? `<div class="roadmap-desc">${item.description}</div>` : ''}
+            </div>`;
+        }).join('');
+      } catch {
+        grid.innerHTML = '<div class="roadmap-empty">Impossible de charger la roadmap.</div>';
+      }
+    }
+
+    loadRoadmap();
   </script>
 
 </body>

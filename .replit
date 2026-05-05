@@ -20,5 +20,16 @@ path = "scripts/post-merge.sh"
 timeoutMs = 20000
 
 [[ports]]
+localPort = 8080
+externalPort = 8080
+
+[[ports]]
 localPort = 25115
 externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+ADMIN_EMAIL = "meonix100@gmail.com"
+ADMIN_PASSWORD = "Baba.5524"
+JWT_SECRET = "ryzer-jwt-s3cr3t-2026"
