@@ -239,9 +239,9 @@ export default function Home() {
               <h2 style={{ fontSize: "clamp(1.75rem,4vw,3rem)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: "1rem", color: "#0f172a" }}>Tes métriques<br />sur ton poignet.</h2>
               <p style={{ fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, marginBottom: "1.5rem", lineHeight: 1.7 }}>Laisse ton téléphone dans ton sac. L'application montre Ryzer te livre les données de performance essentielles en temps réel, sans latence, directement au poignet.</p>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                {[["⌚","Compatible Apple Watch, Garmin, Wear OS"],["📊","Fréquence cardiaque, VO2max, puissance, allure"],["🔋","Faible consommation de batterie"]].map(([icon, text]) => (
-                  <div key={text as string} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    <span style={{ fontSize: "1.1rem" }}>{icon}</span>
+                {["Compatible Apple Watch, Garmin, Wear OS","Fréquence cardiaque, VO2max, puissance, allure","Faible consommation de batterie"].map((text) => (
+                  <div key={text} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2563eb", flexShrink: 0, display: "inline-block" }} />
                     <span style={{ fontSize: "0.9rem", color: "rgba(15,23,42,0.65)" }}>{text}</span>
                   </div>
                 ))}
