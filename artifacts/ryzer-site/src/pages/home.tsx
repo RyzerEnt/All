@@ -257,7 +257,7 @@ export default function Home() {
               onChange={e => { setEmail(e.target.value); setWaitlistStatus("idle"); }}
               required
               disabled={waitlistStatus === "loading"}
-              style={{ flex: 1, minWidth: 200, padding: "0.875rem 1.25rem", borderRadius: 999, border: `1px solid ${waitlistStatus === "error" || waitlistStatus === "duplicate" ? "rgba(239,68,68,0.5)" : "rgba(15,23,42,0.15)"}`, fontSize: "1rem", outline: "none", fontFamily: "inherit" }}
+              style={{ flex: 1, minWidth: 200, padding: "0.875rem 1.25rem", borderRadius: 999, border: `1px solid ${waitlistStatus === "error" || waitlistStatus === "duplicate" ? "rgba(239,68,68,0.5)" : "rgba(15,23,42,0.15)"}`, fontSize: "1rem", outline: "none", fontFamily: "inherit", color: "#0f172a", background: "#fff" }}
             />
             <button
               type="submit"
