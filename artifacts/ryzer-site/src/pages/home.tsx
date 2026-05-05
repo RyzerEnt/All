@@ -292,7 +292,7 @@ export default function Home() {
             <div>
               <h4 style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: "0.875rem", color: "#0f172a" }}>Entreprise</h4>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                {[["#","À propos"],["#","Recrutement"],["/admin","Portail admin"],["#","Contact"]].map(([href,label]) => (
+                {[["#","À propos"],["/admin","Portail admin"]].map(([href,label]) => (
                   <li key={label}><a href={href} style={{ fontSize: "0.825rem", color: "rgba(15,23,42,0.55)", textDecoration: "none" }}>{label}</a></li>
                 ))}
               </ul>
