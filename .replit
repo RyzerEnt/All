@@ -33,3 +33,4 @@ externalPort = 80
 ADMIN_EMAIL = "meonix100@gmail.com"
 ADMIN_PASSWORD = "Baba.5524"
 JWT_SECRET = "ryzer-jwt-s3cr3t-2026"
+RYZER_DATABASE_URL = "postgresql://ryzer:spacemeonixme@db.meonix.me:5432/ryzer_db"

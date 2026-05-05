@@ -41,6 +41,38 @@ export default function Home() {
       .finally(() => setRoadmapLoading(false));
   }, []);
 
+  const [email, setEmail] = useState("");
+  const [waitlistStatus, setWaitlistStatus] = useState<"idle" | "loading" | "success" | "error" | "duplicate">("idle");
+  const [waitlistMsg, setWaitlistMsg] = useState("");
+
+  const handleWaitlist = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    setWaitlistStatus("loading");
+    try {
+      const res = await fetch("/api/waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json() as { message?: string; error?: string };
+      if (res.ok) {
+        setWaitlistStatus("success");
+        setWaitlistMsg(data.message ?? "Inscription confirmée !");
+        setEmail("");
+      } else if (res.status === 409) {
+        setWaitlistStatus("duplicate");
+        setWaitlistMsg("Cet email est déjà inscrit !");
+      } else {
+        setWaitlistStatus("error");
+        setWaitlistMsg(data.error ?? "Une erreur est survenue.");
+      }
+    } catch {
+      setWaitlistStatus("error");
+      setWaitlistMsg("Impossible de se connecter au serveur.");
+    }
+  };
+
   const close = () => setMenuOpen(false);
 
   const navLinkStyle = (base: string): React.CSSProperties => ({
@@ -212,14 +244,33 @@ export default function Home() {
         </div>
         <h2 style={{ position: "relative", fontSize: "clamp(2rem,7vw,5rem)", fontWeight: 900, letterSpacing: "-0.04em", textTransform: "uppercase", lineHeight: 1, marginBottom: "1rem", color: "#0f172a" }}>SOIS PARMI<br />LES PREMIERS.</h2>
         <p style={{ position: "relative", fontSize: "1rem", color: "rgba(15,23,42,0.55)", fontWeight: 300, maxWidth: 480, margin: "0 auto 2rem", lineHeight: 1.7 }}>Ryzer est en développement actif. Laisse-nous ton email pour être notifié au lancement et accéder à la bêta en avant-première.</p>
-        <div style={{ position: "relative", display: "flex", flexWrap: "wrap", gap: "0.75rem", justifyContent: "center", maxWidth: 460, margin: "0 auto" }}>
-          <input
-            type="email"
-            placeholder="ton@email.com"
-            style={{ flex: 1, minWidth: 200, padding: "0.875rem 1.25rem", borderRadius: 999, border: "1px solid rgba(15,23,42,0.15)", fontSize: "1rem", outline: "none", fontFamily: "inherit" }}
-          />
-          <button style={{ background: "#2563eb", color: "#fff", fontWeight: 700, fontSize: "1rem", padding: "0.875rem 1.75rem", borderRadius: 999, border: "none", cursor: "pointer", boxShadow: "0 0 30px rgba(37,99,235,0.25)", whiteSpace: "nowrap" }}>Me notifier</button>
-        </div>
+        {waitlistStatus === "success" ? (
+          <div style={{ position: "relative", display: "inline-flex", alignItems: "center", gap: "0.6rem", background: "rgba(22,163,74,0.1)", border: "1px solid rgba(22,163,74,0.3)", borderRadius: 999, padding: "1rem 2rem", color: "#16a34a", fontWeight: 700, fontSize: "1rem" }}>
+            <span>✓</span> {waitlistMsg}
+          </div>
+        ) : (
+          <form onSubmit={handleWaitlist} style={{ position: "relative", display: "flex", flexWrap: "wrap", gap: "0.75rem", justifyContent: "center", maxWidth: 460, margin: "0 auto" }}>
+            <input
+              type="email"
+              placeholder="ton@email.com"
+              value={email}
+              onChange={e => { setEmail(e.target.value); setWaitlistStatus("idle"); }}
+              required
+              disabled={waitlistStatus === "loading"}
+              style={{ flex: 1, minWidth: 200, padding: "0.875rem 1.25rem", borderRadius: 999, border: `1px solid ${waitlistStatus === "error" || waitlistStatus === "duplicate" ? "rgba(239,68,68,0.5)" : "rgba(15,23,42,0.15)"}`, fontSize: "1rem", outline: "none", fontFamily: "inherit" }}
+            />
+            <button
+              type="submit"
+              disabled={waitlistStatus === "loading"}
+              style={{ background: "#2563eb", color: "#fff", fontWeight: 700, fontSize: "1rem", padding: "0.875rem 1.75rem", borderRadius: 999, border: "none", cursor: waitlistStatus === "loading" ? "wait" : "pointer", boxShadow: "0 0 30px rgba(37,99,235,0.25)", whiteSpace: "nowrap", opacity: waitlistStatus === "loading" ? 0.7 : 1 }}
+            >
+              {waitlistStatus === "loading" ? "..." : "Me notifier"}
+            </button>
+            {(waitlistStatus === "error" || waitlistStatus === "duplicate") && (
+              <p style={{ width: "100%", textAlign: "center", margin: 0, fontSize: "0.85rem", color: "#ef4444" }}>{waitlistMsg}</p>
+            )}
+          </form>
+        )}
       </section>
 
       {/* ═══ FOOTER ═══ */}
