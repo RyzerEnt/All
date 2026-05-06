@@ -20,13 +20,13 @@ type CalcFormValues = z.infer<typeof calcSchema>;
 const inputStyle: React.CSSProperties = {
   width: "100%",
   height: 52,
-  background: "rgba(255,255,255,0.05)",
-  border: "1px solid rgba(255,255,255,0.1)",
+  background: "#fff",
+  border: "1px solid rgba(15,23,42,0.15)",
   borderRadius: 10,
   padding: "0 1rem",
   fontSize: "1.1rem",
   fontWeight: 700,
-  color: "#fff",
+  color: "#0f172a",
   outline: "none",
   fontFamily: "inherit",
   transition: "border-color 0.2s, box-shadow 0.2s",
@@ -41,7 +41,7 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 700,
   letterSpacing: "0.09em",
   textTransform: "uppercase",
-  color: "rgba(255,255,255,0.45)",
+  color: "rgba(15,23,42,0.45)",
   marginBottom: "0.5rem",
 };
 
@@ -50,7 +50,7 @@ function Field({ label, error, children }: { label: React.ReactNode; error?: str
     <div>
       <label style={labelStyle}>{label}</label>
       {children}
-      {error && <p style={{ fontSize: "0.75rem", color: "#f87171", marginTop: "0.3rem" }}>{error}</p>}
+      {error && <p style={{ fontSize: "0.75rem", color: "#ef4444", marginTop: "0.3rem" }}>{error}</p>}
     </div>
   );
 }
@@ -93,7 +93,7 @@ export default function CalculatorPage() {
 
   const focusStyle = (name: string): React.CSSProperties =>
     focused === name
-      ? { ...inputStyle, borderColor: "rgba(37,99,235,0.6)", boxShadow: "0 0 0 3px rgba(37,99,235,0.15)" }
+      ? { ...inputStyle, borderColor: "#2563eb", boxShadow: "0 0 0 3px rgba(37,99,235,0.12)" }
       : inputStyle;
 
   return (
@@ -105,13 +105,13 @@ export default function CalculatorPage() {
           <p style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563eb", marginBottom: "0.5rem" }}>
             Performance
           </p>
-          <h1 style={{ fontSize: "clamp(2rem,6vw,3.5rem)", fontWeight: 900, letterSpacing: "-0.035em", lineHeight: 1, textTransform: "uppercase", color: "#fff", margin: 0 }}>
+          <h1 style={{ fontSize: "clamp(2rem,6vw,3.5rem)", fontWeight: 900, letterSpacing: "-0.035em", lineHeight: 1, textTransform: "uppercase", color: "#0f172a", margin: 0 }}>
             CALCULATEUR<br />
             <span style={{ background: "linear-gradient(90deg,#2563eb,#f97316)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
               RYZER POINTS
             </span>
           </h1>
-          <p style={{ fontSize: "0.95rem", color: "rgba(255,255,255,0.5)", fontWeight: 300, marginTop: "0.875rem", maxWidth: 480, lineHeight: 1.6 }}>
+          <p style={{ fontSize: "0.95rem", color: "rgba(15,23,42,0.5)", fontWeight: 300, marginTop: "0.875rem", maxWidth: 480, lineHeight: 1.6 }}>
             Renseigne tes métriques pour obtenir tes Ryzer Points — la mesure de ta dépense d'effort.
           </p>
         </div>
@@ -120,7 +120,7 @@ export default function CalculatorPage() {
 
           {/* FORM */}
           <div style={{ flex: "1 1 360px", minWidth: 0 }}>
-            <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, padding: "1.75rem", backdropFilter: "blur(8px)" }}>
+            <div style={{ background: "#fff", border: "1px solid rgba(15,23,42,0.08)", borderRadius: 20, padding: "1.75rem", boxShadow: "0 2px 16px rgba(15,23,42,0.06)" }}>
 
               <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
 
@@ -133,15 +133,14 @@ export default function CalculatorPage() {
                       cursor: "pointer",
                       appearance: "none",
                       WebkitAppearance: "none",
-                      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.4)' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-                      backgroundRepeat: "no-repeat",
-                      backgroundPosition: "right 1rem center",
+                      background: `#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(15,23,42,0.4)' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 1rem center`,
                       paddingRight: "2.5rem",
+                      color: "#0f172a",
                     }}
                   >
-                    <option value="" style={{ background: "#0d1117" }}>— Sélectionner un sport —</option>
+                    <option value="" style={{ background: "#fff", color: "#0f172a" }}>— Sélectionner un sport —</option>
                     {DEFAULT_SPORTS.map((sport) => (
-                      <option key={sport.id} value={sport.id.toString()} style={{ background: "#0d1117" }}>
+                      <option key={sport.id} value={sport.id.toString()} style={{ background: "#fff", color: "#0f172a" }}>
                         {sport.icon} {sport.name} — MET {sport.baseMet}
                       </option>
                     ))}
@@ -205,8 +204,8 @@ export default function CalculatorPage() {
                       {...register("elevationGainMeters")}
                       style={{
                         ...focusStyle("elevationGainMeters"),
-                        borderColor: "rgba(249,115,22,0.4)",
-                        boxShadow: focused === "elevationGainMeters" ? "0 0 0 3px rgba(249,115,22,0.15)" : undefined,
+                        borderColor: focused === "elevationGainMeters" ? "#f97316" : "rgba(249,115,22,0.4)",
+                        boxShadow: focused === "elevationGainMeters" ? "0 0 0 3px rgba(249,115,22,0.12)" : undefined,
                       }}
                       onFocus={() => setFocused("elevationGainMeters")}
                       onBlur={() => setFocused(null)}
@@ -218,28 +217,28 @@ export default function CalculatorPage() {
                 {result && (
                   <div style={{
                     borderRadius: 16,
-                    border: "1px solid rgba(37,99,235,0.25)",
-                    background: "rgba(37,99,235,0.08)",
+                    border: "1px solid rgba(37,99,235,0.2)",
+                    background: "rgba(37,99,235,0.05)",
                     padding: "1.25rem",
                     textAlign: "center",
                   }}
-                    className="lg:hidden"
+                    className="lg-hide"
                   >
-                    <div style={{ fontSize: "3.5rem", fontWeight: 900, letterSpacing: "-0.04em", color: "#fff", lineHeight: 1 }}>
+                    <div style={{ fontSize: "3.5rem", fontWeight: 900, letterSpacing: "-0.04em", color: "#0f172a", lineHeight: 1 }}>
                       {result.calories}
                     </div>
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", marginTop: "0.5rem", background: "rgba(37,99,235,0.15)", border: "1px solid rgba(37,99,235,0.3)", borderRadius: 999, padding: "0.2rem 0.75rem" }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", marginTop: "0.5rem", background: "rgba(37,99,235,0.1)", border: "1px solid rgba(37,99,235,0.25)", borderRadius: 999, padding: "0.2rem 0.75rem" }}>
                       <span style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563eb" }}>Ryzer Points</span>
                     </div>
-                    <div style={{ marginTop: "1rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", fontSize: "0.75rem", color: "rgba(255,255,255,0.5)" }}>
+                    <div style={{ marginTop: "1rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", fontSize: "0.75rem", color: "rgba(15,23,42,0.45)" }}>
                       <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span>Base</span><span style={{ color: "#fff", fontWeight: 700 }}>{result.breakdown.base}</span>
+                        <span>Base</span><span style={{ color: "#0f172a", fontWeight: 700 }}>{result.breakdown.base}</span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span>FC ×</span><span style={{ color: "#fff", fontWeight: 700 }}>{result.breakdown.heartRateFactor}</span>
+                        <span>FC ×</span><span style={{ color: "#0f172a", fontWeight: 700 }}>{result.breakdown.heartRateFactor}</span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}>
-                        <span>VO2 ×</span><span style={{ color: "#fff", fontWeight: 700 }}>{result.breakdown.vo2Factor}</span>
+                        <span>VO2 ×</span><span style={{ color: "#0f172a", fontWeight: 700 }}>{result.breakdown.vo2Factor}</span>
                       </div>
                       {result.breakdown.elevationBonus > 0 && (
                         <div style={{ display: "flex", justifyContent: "space-between", color: "#f97316" }}>
@@ -265,12 +264,12 @@ export default function CalculatorPage() {
                     border: "none",
                     borderRadius: 999,
                     cursor: "pointer",
-                    boxShadow: "0 0 32px rgba(37,99,235,0.35)",
+                    boxShadow: "0 0 28px rgba(37,99,235,0.25)",
                     transition: "transform 0.15s, box-shadow 0.15s",
                     fontFamily: "inherit",
                   }}
-                  onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.02)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 40px rgba(37,99,235,0.5)"; }}
-                  onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 32px rgba(37,99,235,0.35)"; }}
+                  onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.02)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 36px rgba(37,99,235,0.4)"; }}
+                  onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; (e.currentTarget as HTMLButtonElement).style.boxShadow = "0 0 28px rgba(37,99,235,0.25)"; }}
                 >
                   Calculer mes Ryzer Points
                 </button>
@@ -279,10 +278,10 @@ export default function CalculatorPage() {
           </div>
 
           {/* RÉSULTAT DESKTOP */}
-          <div style={{ width: 360, flexShrink: 0 }} className="hidden lg:block">
+          <div style={{ width: 360, flexShrink: 0 }} className="lg-show">
             <div style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background: "#fff",
+              border: "1px solid rgba(15,23,42,0.08)",
               borderRadius: 20,
               padding: "1.75rem",
               minHeight: 420,
@@ -291,17 +290,18 @@ export default function CalculatorPage() {
               justifyContent: "center",
               position: "relative",
               overflow: "hidden",
+              boxShadow: "0 2px 16px rgba(15,23,42,0.06)",
             }}>
               {/* Glow bg */}
-              <div style={{ position: "absolute", top: -60, right: -60, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle,rgba(37,99,235,0.12) 0%,transparent 70%)", pointerEvents: "none" }} />
+              <div style={{ position: "absolute", top: -60, right: -60, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle,rgba(37,99,235,0.06) 0%,transparent 70%)", pointerEvents: "none" }} />
 
               {!result ? (
                 <div style={{ textAlign: "center", padding: "2rem 0" }}>
-                  <div style={{ fontSize: "4rem", marginBottom: "1rem", opacity: 0.15 }}>⚡</div>
-                  <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)" }}>
+                  <div style={{ fontSize: "4rem", marginBottom: "1rem", opacity: 0.12 }}>⚡</div>
+                  <p style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,23,42,0.2)" }}>
                     En attente
                   </p>
-                  <p style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.15)", marginTop: "0.5rem" }}>
+                  <p style={{ fontSize: "0.8rem", color: "rgba(15,23,42,0.25)", marginTop: "0.5rem" }}>
                     Lance le calcul pour voir tes Ryzer Points
                   </p>
                 </div>
@@ -312,31 +312,31 @@ export default function CalculatorPage() {
                   </p>
 
                   <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-                    <div style={{ fontSize: "5.5rem", fontWeight: 900, letterSpacing: "-0.05em", lineHeight: 1, color: "#fff" }}>
+                    <div style={{ fontSize: "5.5rem", fontWeight: 900, letterSpacing: "-0.05em", lineHeight: 1, color: "#0f172a" }}>
                       {result.calories}
                     </div>
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", marginTop: "0.75rem", background: "rgba(37,99,235,0.15)", border: "1px solid rgba(37,99,235,0.35)", borderRadius: 999, padding: "0.3rem 1rem" }}>
-                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2563eb", display: "inline-block", boxShadow: "0 0 8px #2563eb" }} />
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", marginTop: "0.75rem", background: "rgba(37,99,235,0.08)", border: "1px solid rgba(37,99,235,0.2)", borderRadius: 999, padding: "0.3rem 1rem" }}>
+                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#2563eb", display: "inline-block" }} />
                       <span style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#2563eb" }}>Ryzer Points</span>
                     </div>
                   </div>
 
-                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "1.25rem" }}>
-                    <p style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.25)", marginBottom: "1rem" }}>
+                  <div style={{ borderTop: "1px solid rgba(15,23,42,0.07)", paddingTop: "1.25rem" }}>
+                    <p style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,23,42,0.3)", marginBottom: "1rem" }}>
                       Détail des facteurs
                     </p>
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem", fontSize: "0.82rem" }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ color: "rgba(255,255,255,0.45)" }}>Base (MET × poids × temps)</span>
-                        <span style={{ fontWeight: 700, color: "#fff" }}>{result.breakdown.base}</span>
+                        <span style={{ color: "rgba(15,23,42,0.45)" }}>Base (MET × poids × temps)</span>
+                        <span style={{ fontWeight: 700, color: "#0f172a" }}>{result.breakdown.base}</span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ color: "rgba(255,255,255,0.45)" }}>Facteur FC</span>
-                        <span style={{ fontWeight: 700, color: "#fff" }}>×{result.breakdown.heartRateFactor}</span>
+                        <span style={{ color: "rgba(15,23,42,0.45)" }}>Facteur FC</span>
+                        <span style={{ fontWeight: 700, color: "#0f172a" }}>×{result.breakdown.heartRateFactor}</span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ color: "rgba(255,255,255,0.45)" }}>Facteur VO2</span>
-                        <span style={{ fontWeight: 700, color: "#fff" }}>×{result.breakdown.vo2Factor}</span>
+                        <span style={{ color: "rgba(15,23,42,0.45)" }}>Facteur VO2</span>
+                        <span style={{ fontWeight: 700, color: "#0f172a" }}>×{result.breakdown.vo2Factor}</span>
                       </div>
                       {result.breakdown.elevationBonus > 0 && (
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -344,9 +344,9 @@ export default function CalculatorPage() {
                           <span style={{ fontWeight: 700, color: "#f97316" }}>+{result.breakdown.elevationBonus}</span>
                         </div>
                       )}
-                      <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "0.65rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                        <span style={{ color: "rgba(255,255,255,0.45)" }}>Durée</span>
-                        <span style={{ fontWeight: 700, color: "#fff" }}>{result.breakdown.durationHours}h</span>
+                      <div style={{ borderTop: "1px solid rgba(15,23,42,0.07)", paddingTop: "0.65rem", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ color: "rgba(15,23,42,0.45)" }}>Durée</span>
+                        <span style={{ fontWeight: 700, color: "#0f172a" }}>{result.breakdown.durationHours}h</span>
                       </div>
                     </div>
                   </div>
@@ -359,11 +359,13 @@ export default function CalculatorPage() {
       </div>
 
       <style>{`
+        .lg-show { display: none; }
+        .lg-hide { display: block; }
         @media (min-width: 1024px) {
-          .hidden.lg\\:block { display: block !important; }
-          .lg\\:hidden { display: none !important; }
+          .lg-show { display: block !important; }
+          .lg-hide { display: none !important; }
         }
-        select option { background: #0d1117; color: #fff; }
+        select option { background: #fff; color: #0f172a; }
         input[type=number]::-webkit-inner-spin-button,
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         input[type=number] { -moz-appearance: textfield; }

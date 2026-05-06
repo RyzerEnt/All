@@ -34,13 +34,13 @@ function MultiplierCard({
   };
 
   return (
-    <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+    <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid rgba(15,23,42,0.06)" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", marginBottom: "0.75rem" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#fff" }}>{multiplier.label}</div>
-          <div style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.4)", marginTop: "0.2rem", lineHeight: 1.4 }}>{multiplier.description}</div>
+          <div style={{ fontSize: "0.85rem", fontWeight: 700, color: "#0f172a" }}>{multiplier.label}</div>
+          <div style={{ fontSize: "0.75rem", color: "rgba(15,23,42,0.45)", marginTop: "0.2rem", lineHeight: 1.4 }}>{multiplier.description}</div>
         </div>
-        <div style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.3)", flexShrink: 0, marginTop: "0.25rem", fontFamily: "ui-monospace, monospace" }}>
+        <div style={{ fontSize: "0.7rem", color: "rgba(15,23,42,0.3)", flexShrink: 0, marginTop: "0.25rem", fontFamily: "ui-monospace, monospace" }}>
           [{multiplier.min} – {multiplier.max}]
         </div>
       </div>
@@ -58,21 +58,21 @@ function MultiplierCard({
           style={{
             flex: 1,
             height: 46,
-            background: "rgba(255,255,255,0.05)",
-            border: focused ? "1px solid rgba(37,99,235,0.6)" : "1px solid rgba(255,255,255,0.1)",
-            boxShadow: focused ? "0 0 0 3px rgba(37,99,235,0.12)" : "none",
+            background: "#f8fafc",
+            border: focused ? "1px solid #2563eb" : "1px solid rgba(15,23,42,0.12)",
+            boxShadow: focused ? "0 0 0 3px rgba(37,99,235,0.1)" : "none",
             borderRadius: 10,
             padding: "0 0.875rem",
             fontSize: "1rem",
             fontWeight: 700,
-            color: "#fff",
+            color: "#0f172a",
             textAlign: "right",
             outline: "none",
             fontFamily: "ui-monospace, monospace",
             transition: "border-color 0.2s, box-shadow 0.2s",
           }}
         />
-        <span style={{ fontSize: "0.75rem", color: "rgba(255,255,255,0.35)", flexShrink: 0, minWidth: 70, textAlign: "right", fontFamily: "ui-monospace, monospace" }}>
+        <span style={{ fontSize: "0.75rem", color: "rgba(15,23,42,0.35)", flexShrink: 0, minWidth: 70, textAlign: "right", fontFamily: "ui-monospace, monospace" }}>
           {multiplier.unit}
         </span>
       </div>
@@ -80,14 +80,16 @@ function MultiplierCard({
   );
 }
 
-const statCard = (icon: string, label: string, value: string | number) => (
-  <div key={label} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, padding: "1.25rem" }}>
-    <div style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
-      <span>{icon}</span> {label}
+function StatCard({ icon, label, value }: { icon: string; label: string; value: string | number }) {
+  return (
+    <div style={{ background: "#fff", border: "1px solid rgba(15,23,42,0.08)", borderRadius: 16, padding: "1.25rem", boxShadow: "0 1px 8px rgba(15,23,42,0.05)" }}>
+      <div style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(15,23,42,0.35)", marginBottom: "0.6rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+        <span>{icon}</span> {label}
+      </div>
+      <div style={{ fontSize: "2.25rem", fontWeight: 900, letterSpacing: "-0.03em", color: "#2563eb", lineHeight: 1 }}>{value}</div>
     </div>
-    <div style={{ fontSize: "2.25rem", fontWeight: 900, letterSpacing: "-0.03em", color: "#2563eb", lineHeight: 1 }}>{value}</div>
-  </div>
-);
+  );
+}
 
 export default function AdminDashboard() {
   const { toast } = useToast();
@@ -119,39 +121,39 @@ export default function AdminDashboard() {
           <p style={{ fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#2563eb", marginBottom: "0.5rem" }}>
             Configuration
           </p>
-          <h1 style={{ fontSize: "clamp(1.75rem,5vw,2.75rem)", fontWeight: 900, letterSpacing: "-0.035em", textTransform: "uppercase", color: "#fff", margin: 0, lineHeight: 1.1 }}>
+          <h1 style={{ fontSize: "clamp(1.75rem,5vw,2.75rem)", fontWeight: 900, letterSpacing: "-0.035em", textTransform: "uppercase", color: "#0f172a", margin: 0, lineHeight: 1.1 }}>
             PANNEAU ADMIN
           </h1>
-          <p style={{ fontSize: "0.9rem", color: "rgba(255,255,255,0.4)", fontWeight: 300, marginTop: "0.6rem" }}>
+          <p style={{ fontSize: "0.9rem", color: "rgba(15,23,42,0.45)", fontWeight: 300, marginTop: "0.6rem" }}>
             Ajuste les multiplicateurs de calcul des Ryzer Points.
           </p>
         </div>
 
         {/* STATS */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem" }}>
-          {statCard("🏅", "Sports", DEFAULT_SPORTS.length)}
-          {statCard("⚙️", "Params", multipliers.length)}
-          {statCard("📊", "MET moy.", avgMet)}
+          <StatCard icon="🏅" label="Sports" value={DEFAULT_SPORTS.length} />
+          <StatCard icon="⚙️" label="Params" value={multipliers.length} />
+          <StatCard icon="📊" label="MET moy." value={avgMet} />
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.5rem" }} className="admin-grid">
 
           {/* SPORTS LIST */}
-          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, overflow: "hidden" }}>
-            <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}>
-              <h2 style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#fff", margin: 0 }}>Sports disponibles</h2>
-              <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.3)", margin: "0.2rem 0 0" }}>Liste fixe — modifiable dans le code source</p>
+          <div style={{ background: "#fff", border: "1px solid rgba(15,23,42,0.08)", borderRadius: 20, overflow: "hidden", boxShadow: "0 2px 16px rgba(15,23,42,0.05)" }}>
+            <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid rgba(15,23,42,0.07)", background: "#f8fafc" }}>
+              <h2 style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a", margin: 0 }}>Sports disponibles</h2>
+              <p style={{ fontSize: "0.72rem", color: "rgba(15,23,42,0.4)", margin: "0.2rem 0 0" }}>Liste fixe — modifiable dans le code source</p>
             </div>
             <div>
               {DEFAULT_SPORTS.map((sport) => (
-                <div key={sport.id} style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <div key={sport.id} style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "0.875rem 1.25rem", borderBottom: "1px solid rgba(15,23,42,0.05)" }}>
                   <span style={{ fontSize: "1.75rem", flexShrink: 0 }}>{sport.icon}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "#fff" }}>{sport.name}</div>
+                    <div style={{ fontSize: "0.875rem", fontWeight: 600, color: "#0f172a" }}>{sport.name}</div>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.2rem" }}>
-                      <span style={{ fontSize: "0.7rem", color: "rgba(255,255,255,0.35)", fontFamily: "ui-monospace, monospace" }}>MET {sport.baseMet}</span>
+                      <span style={{ fontSize: "0.7rem", color: "rgba(15,23,42,0.4)", fontFamily: "ui-monospace, monospace" }}>MET {sport.baseMet}</span>
                       {sport.appliesElevation && (
-                        <span style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#f97316", background: "rgba(249,115,22,0.12)", border: "1px solid rgba(249,115,22,0.25)", borderRadius: 999, padding: "0.1rem 0.5rem" }}>
+                        <span style={{ fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "#f97316", background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.2)", borderRadius: 999, padding: "0.1rem 0.5rem" }}>
                           dénivelé
                         </span>
                       )}
@@ -163,11 +165,11 @@ export default function AdminDashboard() {
           </div>
 
           {/* MULTIPLIERS */}
-          <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, overflow: "hidden" }}>
-            <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ background: "#fff", border: "1px solid rgba(15,23,42,0.08)", borderRadius: 20, overflow: "hidden", boxShadow: "0 2px 16px rgba(15,23,42,0.05)" }}>
+            <div style={{ padding: "1rem 1.25rem", borderBottom: "1px solid rgba(15,23,42,0.07)", background: "#f8fafc", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
-                <h2 style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#fff", margin: 0 }}>Multiplicateurs</h2>
-                <p style={{ fontSize: "0.72rem", color: "rgba(255,255,255,0.3)", margin: "0.2rem 0 0" }}>Sauvegardés dans votre navigateur</p>
+                <h2 style={{ fontSize: "0.75rem", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0f172a", margin: 0 }}>Multiplicateurs</h2>
+                <p style={{ fontSize: "0.72rem", color: "rgba(15,23,42,0.4)", margin: "0.2rem 0 0" }}>Sauvegardés dans votre navigateur</p>
               </div>
               <button
                 onClick={handleReset}
@@ -175,17 +177,17 @@ export default function AdminDashboard() {
                   display: "flex", alignItems: "center", gap: "0.4rem",
                   padding: "0.45rem 1rem",
                   borderRadius: 999,
-                  border: "1px solid rgba(255,255,255,0.12)",
+                  border: "1px solid rgba(15,23,42,0.15)",
                   background: "transparent",
-                  color: "rgba(255,255,255,0.5)",
+                  color: "rgba(15,23,42,0.5)",
                   fontSize: "0.75rem",
                   fontWeight: 600,
                   cursor: "pointer",
                   fontFamily: "inherit",
                   transition: "all 0.2s",
                 }}
-                onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.25)"; (e.currentTarget as HTMLButtonElement).style.color = "#fff"; }}
-                onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.12)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.5)"; }}
+                onMouseOver={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(15,23,42,0.3)"; (e.currentTarget as HTMLButtonElement).style.color = "#0f172a"; }}
+                onMouseOut={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(15,23,42,0.15)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(15,23,42,0.5)"; }}
               >
                 ↺ Reset
               </button>
