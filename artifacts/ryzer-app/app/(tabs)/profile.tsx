@@ -25,7 +25,7 @@ const ORANGE = "#f97316";
 const STATS = [
   { label: "SESSIONS",   value: "12",    icon: "lightning-bolt" as MCIcon,  color: BLUE   },
   { label: "DURÉE TOT.", value: "18h",   icon: "clock-outline" as MCIcon,   color: ORANGE },
-  { label: "MEILLEURE",  value: "3 240", icon: "trophy-outline" as MCIcon,  color: BLUE   },
+  { label: "MEILLEURE",  value: "32",    icon: "trophy-outline" as MCIcon,  color: BLUE   },
 ];
 
 type RecentItem = {
@@ -37,10 +37,10 @@ type RecentItem = {
 };
 
 const RECENT: RecentItem[] = [
-  { sport: "Course à pied", icon: "run",              accent: "blue",   points: 3240, date: "Aujourd'hui" },
-  { sport: "Cyclisme",      icon: "bike",             accent: "orange", points: 2890, date: "Hier"        },
-  { sport: "Natation",      icon: "swim",             accent: "blue",   points: 2410, date: "Il y a 2 j." },
-  { sport: "Randonnée",     icon: "hiking",           accent: "orange", points: 1980, date: "Il y a 3 j." },
+  { sport: "Course à pied", icon: "run",    accent: "blue",   points: 32, date: "Aujourd'hui" },
+  { sport: "Cyclisme",      icon: "bike",   accent: "orange", points: 29, date: "Hier"        },
+  { sport: "Natation",      icon: "swim",   accent: "blue",   points: 24, date: "Il y a 2 j." },
+  { sport: "Randonnée",     icon: "hiking", accent: "orange", points: 20, date: "Il y a 3 j." },
 ];
 
 export default function ProfileScreen() {
@@ -53,7 +53,7 @@ export default function ProfileScreen() {
   const [name,        setName]        = useState("Athlète Ryzer");
   const [editingName, setEditingName] = useState(false);
   const [draftName,   setDraftName]   = useState("");
-  const [totalPoints, setTotalPoints] = useState(10520);
+  const [totalPoints, setTotalPoints] = useState(105);
 
   useEffect(() => {
     (async () => {
