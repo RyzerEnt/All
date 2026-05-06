@@ -30,3 +30,9 @@ id = "x_zsDgx3vGxRcCJp1Uf0l"
 uri = "file://artifacts/ryzer-site/public/hero-nature-mobile.png"
 type = "image"
 title = "trail runner mountain portrait mobile hero"
+
+[[generated]]
+id = "ADNgJlUlLoJOwltegCD6n"
+uri = "file://artifacts/ryzer-app/assets/images/icon.png"
+type = "image"
+title = "ryzer app icon"
