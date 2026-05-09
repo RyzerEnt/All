@@ -3,8 +3,6 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
-import { clerkMiddleware } from "@clerk/express";
-import { publishableKeyFromHost } from "@clerk/shared/keys";
 import {
   CLERK_PROXY_PATH,
   clerkProxyMiddleware,
@@ -35,14 +33,21 @@ app.use(cors({ credentials: true, origin: true }));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-  clerkMiddleware((req) => ({
-    publishableKey: publishableKeyFromHost(
-      getClerkProxyHost(req) ?? "",
-      process.env.CLERK_PUBLISHABLE_KEY,
-    ),
-  })),
-);
+if (process.env.CLERK_SECRET_KEY) {
+  const { clerkMiddleware } = await import("@clerk/express");
+  const { publishableKeyFromHost } = await import("@clerk/shared/keys");
+
+  app.use(
+    clerkMiddleware((req) => ({
+      publishableKey: publishableKeyFromHost(
+        getClerkProxyHost(req) ?? "",
+        process.env.CLERK_PUBLISHABLE_KEY,
+      ),
+    })),
+  );
+} else {
+  logger.warn("CLERK_SECRET_KEY not set — Clerk auth middleware disabled. /api/me and /api/sessions will return 401.");
+}
 
 app.use("/api", router);
 
