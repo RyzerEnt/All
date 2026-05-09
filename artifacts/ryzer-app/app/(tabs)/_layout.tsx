@@ -8,6 +8,7 @@ import React from "react";
 import { Platform, StyleSheet, View, useColorScheme, ActivityIndicator } from "react-native";
 import { useAuth } from "@clerk/expo";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useColors } from "@/hooks/useColors";
 import { useUser } from "@/contexts/UserContext";
@@ -16,12 +17,21 @@ function AuthAndSetupGuard({ children }: { children: React.ReactNode }) {
   const { isSignedIn, isLoaded, getToken } = useAuth();
   const { profile, isLoading } = useUser();
   const colors = useColors();
+  const [onboardingChecked, setOnboardingChecked] = React.useState(false);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = React.useState(false);
 
   React.useEffect(() => {
     setAuthTokenGetter(() => getToken());
   }, [getToken]);
 
-  if (!isLoaded) {
+  React.useEffect(() => {
+    AsyncStorage.getItem("hasSeenOnboarding").then((val) => {
+      setHasSeenOnboarding(val === "true");
+      setOnboardingChecked(true);
+    });
+  }, []);
+
+  if (!isLoaded || !onboardingChecked) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background }}>
         <ActivityIndicator color={colors.primary} />
@@ -29,7 +39,10 @@ function AuthAndSetupGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
+  if (!isSignedIn) {
+    if (!hasSeenOnboarding) return <Redirect href="/onboarding" />;
+    return <Redirect href="/(auth)/sign-in" />;
+  }
 
   if (!isLoading && profile && !profile.isSetupComplete) {
     return <Redirect href="/(setup)/profile-setup" />;

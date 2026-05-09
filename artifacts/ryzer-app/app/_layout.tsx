@@ -28,6 +28,7 @@ const proxyUrl = process.env.EXPO_PUBLIC_CLERK_PROXY_URL || undefined;
 function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="onboarding" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(auth)" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
       <Stack.Screen name="(setup)" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
