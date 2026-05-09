@@ -1,13 +1,42 @@
 import { BlurView } from "expo-blur";
 import { isLiquidGlassAvailable } from "expo-glass-effect";
-import { Tabs } from "expo-router";
+import { Tabs, Redirect } from "expo-router";
 import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
 import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { Platform, StyleSheet, View, useColorScheme } from "react-native";
+import { Platform, StyleSheet, View, useColorScheme, ActivityIndicator } from "react-native";
+import { useAuth } from "@clerk/expo";
+import { setAuthTokenGetter } from "@workspace/api-client-react";
 
 import { useColors } from "@/hooks/useColors";
+import { useUser } from "@/contexts/UserContext";
+
+function AuthAndSetupGuard({ children }: { children: React.ReactNode }) {
+  const { isSignedIn, isLoaded, getToken } = useAuth();
+  const { profile, isLoading } = useUser();
+  const colors = useColors();
+
+  React.useEffect(() => {
+    setAuthTokenGetter(() => getToken());
+  }, [getToken]);
+
+  if (!isLoaded) {
+    return (
+      <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background }}>
+        <ActivityIndicator color={colors.primary} />
+      </View>
+    );
+  }
+
+  if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
+
+  if (!isLoading && profile && !profile.isSetupComplete) {
+    return <Redirect href="/(setup)/profile-setup" />;
+  }
+
+  return <>{children}</>;
+}
 
 function NativeTabLayout() {
   return (
@@ -47,18 +76,10 @@ function ClassicTabLayout() {
           paddingBottom: isWeb ? 34 : 8,
           paddingTop: 8,
         },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: "600",
-          letterSpacing: 0.3,
-        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600", letterSpacing: 0.3 },
         tabBarBackground: () =>
           isIOS ? (
-            <BlurView
-              intensity={95}
-              tint={isDark ? "dark" : "light"}
-              style={StyleSheet.absoluteFill}
-            />
+            <BlurView intensity={95} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
           ) : isWeb ? (
             <View style={[StyleSheet.absoluteFill, { backgroundColor: colors.card }]} />
           ) : null,
@@ -93,8 +114,6 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
-  if (isLiquidGlassAvailable()) {
-    return <NativeTabLayout />;
-  }
-  return <ClassicTabLayout />;
+  const tabContent = isLiquidGlassAvailable() ? <NativeTabLayout /> : <ClassicTabLayout />;
+  return <AuthAndSetupGuard>{tabContent}</AuthAndSetupGuard>;
 }

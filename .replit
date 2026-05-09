@@ -102,3 +102,6 @@ RYZER_DATABASE_URL = "postgresql://ryzer:spacemeonixme@db.meonix.me:5432/ryzer_d
 
 [nix]
 channel = "stable-25_05"
+
+[objectStorage]
+defaultBucketID = "replit-objstore-3822dfee-3d27-4431-b6c5-6cf30501d18b"
