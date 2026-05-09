@@ -112,6 +112,7 @@ externalPort = 80
 
 [userenv.shared]
 ADMIN_EMAIL = "meonix100@gmail.com"
+CLERK_PUBLISHABLE_KEY = "pk_test_c3RlYWR5LXNoZXBoZXJkLTgzLmNsZXJrLmFjY291bnRzLmRldiQ"
 
 [nix]
 channel = "stable-25_05"
