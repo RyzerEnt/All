@@ -39,14 +39,7 @@
       ],
       "expo-font",
       "expo-web-browser",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "extraMavenRepos": ["https://maven.clerk.com/android-sdk"]
-          }
-        }
-      ]
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true,
