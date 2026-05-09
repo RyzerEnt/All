@@ -1,10 +1,18 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("path");
 
-const config = getDefaultConfig(__dirname);
+const projectRoot = __dirname;
+const workspaceRoot = path.resolve(projectRoot, "../..");
 
-// Exclude @clerk/express temp directories from Metro's watcher
-// These temp dirs are created/removed by the server package and cause ENOENT errors
+const config = getDefaultConfig(projectRoot);
+
+config.watchFolders = [workspaceRoot];
+
+config.resolver.nodeModulesPaths = [
+  path.resolve(projectRoot, "node_modules"),
+  path.resolve(workspaceRoot, "node_modules"),
+];
+
 config.resolver.blockList = [
   /node_modules\/.pnpm\/@clerk\+express[^/]*\/node_modules\/@clerk\/express_tmp_.*/,
 ];
