@@ -180,7 +180,7 @@ export default function SignInScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   closeBtn: { alignSelf: "flex-end", padding: 4, marginBottom: 8 },
-  logo: { width: 64, height: 64, alignSelf: "center", marginBottom: 20 },
+  logo: { width: 64, height: 64, alignSelf: "center", marginBottom: 20, borderRadius: 16 },
   title: { fontSize: 32, fontWeight: "900", letterSpacing: -1, lineHeight: 36, marginBottom: 8 },
   subtitle: { fontSize: 14, marginBottom: 32, lineHeight: 20 },
   label: { fontSize: 10, fontWeight: "700", letterSpacing: 1, marginBottom: 6 },

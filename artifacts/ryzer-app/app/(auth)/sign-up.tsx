@@ -196,7 +196,7 @@ export default function SignUpScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   closeBtn: { alignSelf: "flex-end", padding: 4, marginBottom: 8 },
-  logo: { width: 64, height: 64, alignSelf: "center", marginBottom: 20 },
+  logo: { width: 64, height: 64, alignSelf: "center", marginBottom: 20, borderRadius: 16 },
   otpIconWrap: {
     width: 72, height: 72, borderRadius: 20,
     alignItems: "center", justifyContent: "center",
