@@ -28,6 +28,10 @@ args = "API Server"
 task = "workflow.run"
 args = "sport-calc"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "ryzer-app"
+
 [[workflows.workflow]]
 name = "ryzer-site"
 author = "agent"
@@ -63,6 +67,18 @@ waitForPort = 18304
 
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow]]
+name = "ryzer-app"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=8081 pnpm --filter @workspace/ryzer-app run dev"
+waitForPort = 8081
+
+[workflows.workflow.metadata]
+outputType = "console"
 
 [agent]
 stack = "BEST_EFFORT_FALLBACK"
