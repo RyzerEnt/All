@@ -6,7 +6,10 @@ const workspaceRoot = path.resolve(projectRoot, "../..");
 
 const config = getDefaultConfig(projectRoot);
 
-config.watchFolders = [workspaceRoot];
+config.watchFolders = [
+  path.resolve(workspaceRoot, "lib"),
+  path.resolve(workspaceRoot, "node_modules"),
+];
 
 config.resolver.nodeModulesPaths = [
   path.resolve(projectRoot, "node_modules"),
