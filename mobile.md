@@ -13,13 +13,14 @@ Le QR code généré par Metro pointe vers une URL incorrecte, ou l'app ne se co
 Replit expose un domaine public pour Expo via `$REPLIT_EXPO_DEV_DOMAIN`. Ce domaine est **hardcodé pour proxier le port 22479**. Si Metro tourne sur un autre port, le proxy ne fonctionne pas.
 
 ### Solution
-- Le workflow "App Mobile" doit impérativement passer `PORT=22479` : `PORT=22479 pnpm --filter @workspace/ryzer-app dev`
+- Le port **22479 est imposé par la plateforme Replit** — le workflow artifact vérifie que ce port précis s'ouvre. Il est **impossible de le changer**.
 - Le script `dev` dans `package.json` set les bonnes variables :
   ```
   EXPO_PACKAGER_PROXY_URL=https://$REPLIT_EXPO_DEV_DOMAIN
   REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN
   ```
-- Le script `scripts/start-dev.sh` lance Metro sur ce port : `pnpm exec expo start . --port $EXPO_PORT`
+- Le script `scripts/start-dev.sh` lance Metro sur ce port : `pnpm exec expo start . --port $EXPO_PORT --non-interactive`
+- Si Metro démarre sur 22480 (port de fallback), c'est qu'un vieux processus occupe 22479 → le tuer avec `fuser -k 22479/tcp` puis relancer le workflow.
 
 ---
 
@@ -84,7 +85,34 @@ Le sous-path `@clerk/expo/legacy` re-exporte depuis `@clerk/react/legacy` et ret
 
 ---
 
-## 5. Résumé des variables d'environnement clés
+## 5. Prompt de login Expo bloque Metro au démarrage
+
+### Symptôme
+Metro démarre mais l'app ne charge pas. Les logs montrent :
+```
+? It is recommended to log in with your Expo account before proceeding.
+❯   Log in
+    Proceed anonymously
+```
+Avec `--non-interactive`, Expo sélectionne automatiquement "Log in" et bloque sur les credentials.
+
+### Cause
+Expo CLI demande une authentification au premier lancement. Le flag `--non-interactive` sélectionne la première option ("Log in") au lieu de "Proceed anonymously", ce qui bloque le processus.
+
+### Solution
+Se connecter **une seule fois** manuellement via le terminal du workflow :
+```sh
+pnpm --filter @workspace/ryzer-app exec expo login
+```
+Compte Expo : `ryzertracker` (email : `ryzerdev@hotmail.com`)
+
+La session est mise en cache dans `~/.expo/state.json`. Les prochains démarrages avec `--non-interactive` passent directement sans prompt car l'utilisateur est déjà authentifié.
+
+**Important :** Si la session expire (réinitialisation du container Replit), il faut se reconnecter une fois manuellement depuis la console du workflow. La session n'est pas persistée entre les redémarrages de container.
+
+---
+
+## 6. Résumé des variables d'environnement clés
 
 | Variable | Où définie | Rôle |
 |---|---|---|
@@ -95,7 +123,7 @@ Le sous-path `@clerk/expo/legacy` re-exporte depuis `@clerk/react/legacy` et ret
 
 ---
 
-## 6. Architecture des écrans auth
+## 7. Architecture des écrans auth
 
 - Les écrans `(auth)/sign-in` et `(auth)/sign-up` sont des **modals** (`presentation: "modal"`) définis dans `app/_layout.tsx`
 - Le guard `AuthAndSetupGuard` dans `app/(tabs)/_layout.tsx` redirige vers `/(auth)/sign-in` si non connecté, avec un timeout de 6s pour éviter les blocages si Clerk est lent

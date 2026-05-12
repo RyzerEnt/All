@@ -3,6 +3,7 @@ import { Tabs, Redirect } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { Platform, StyleSheet, View, Text, useColorScheme, ActivityIndicator } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/expo";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -111,9 +112,13 @@ function NativeTabLayout() {
 function ClassicTabLayout() {
   const colors = useColors();
   const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
   const isDark = colorScheme === "dark";
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
+
+  const tabBarHeight = isWeb ? 84 : 56 + insets.bottom;
+  const tabBarPaddingBottom = isWeb ? 34 : insets.bottom;
 
   return (
     <Tabs
@@ -127,8 +132,8 @@ function ClassicTabLayout() {
           borderTopWidth: 1,
           borderTopColor: colors.border,
           elevation: 0,
-          height: isWeb ? 84 : 64,
-          paddingBottom: isWeb ? 34 : 8,
+          height: tabBarHeight,
+          paddingBottom: tabBarPaddingBottom,
           paddingTop: 8,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: "600", letterSpacing: 0.3 },
