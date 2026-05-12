@@ -4,7 +4,7 @@ import {
   ScrollView, Platform, ActivityIndicator, Image,
   KeyboardAvoidingView,
 } from "react-native";
-import { useSignUp } from "@clerk/expo";
+import { useSignUp } from "@clerk/expo/legacy";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
