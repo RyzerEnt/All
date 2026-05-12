@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   View, Text, TextInput, Pressable, StyleSheet,
   ScrollView, Platform, ActivityIndicator, Image,
+  KeyboardAvoidingView,
 } from "react-native";
 import { useSignIn } from "@clerk/expo";
 import { router } from "expo-router";
@@ -29,6 +30,7 @@ export default function SignInScreen() {
 
   const handleSignIn = async () => {
     if (!isLoaded) return;
+    if (!email || !password) return;
     setError(null);
     setIsLoading(true);
     try {
@@ -57,10 +59,15 @@ export default function SignInScreen() {
   };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
+    <KeyboardAvoidingView
+      style={[styles.root, { backgroundColor: colors.background }]}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+    >
       <ScrollView
-        contentContainerStyle={{ padding: 24, paddingTop: topPad + 24, paddingBottom: bottomPad + 24 }}
+        contentContainerStyle={{ padding: 24, paddingTop: topPad + 24, paddingBottom: 24 }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
         <Pressable onPress={handleClose} style={styles.closeBtn}>
           <Feather name="x" size={20} color={colors.mutedForeground} />
@@ -92,6 +99,8 @@ export default function SignInScreen() {
             placeholderTextColor={colors.mutedForeground}
             keyboardType="email-address"
             autoCapitalize="none"
+            autoCorrect={false}
+            returnKeyType="next"
           />
         </View>
 
@@ -105,24 +114,15 @@ export default function SignInScreen() {
             placeholder="••••••••"
             placeholderTextColor={colors.mutedForeground}
             secureTextEntry={!showPassword}
+            returnKeyType="done"
+            onSubmitEditing={handleSignIn}
           />
           <Pressable onPress={() => setShowPassword((s) => !s)} style={styles.eyeBtn}>
             <Feather name={showPassword ? "eye-off" : "eye"} size={16} color={colors.mutedForeground} />
           </Pressable>
         </View>
 
-        {error && <Text style={styles.error}>{error}</Text>}
-
-        <Pressable
-          style={[styles.btn, { backgroundColor: BLUE, opacity: (!email || !password || isLoading) ? 0.6 : 1 }]}
-          onPress={handleSignIn}
-          disabled={!email || !password || isLoading}
-        >
-          {isLoading
-            ? <ActivityIndicator color="#fff" />
-            : <><Feather name="zap" size={16} color="#fff" /><Text style={styles.btnText}>SE CONNECTER</Text></>
-          }
-        </Pressable>
+        {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <View style={styles.switchRow}>
           <Text style={[styles.switchText, { color: colors.mutedForeground }]}>Pas encore de compte ?</Text>
@@ -131,7 +131,21 @@ export default function SignInScreen() {
           </Pressable>
         </View>
       </ScrollView>
-    </View>
+
+      {/* Button fixed above keyboard */}
+      <View style={[styles.footer, { paddingBottom: bottomPad + 16 }]}>
+        <Pressable
+          style={[styles.btn, { backgroundColor: BLUE, opacity: isLoading ? 0.7 : 1 }]}
+          onPress={handleSignIn}
+          disabled={isLoading}
+        >
+          {isLoading
+            ? <ActivityIndicator color="#fff" />
+            : <><Feather name="zap" size={16} color="#fff" /><Text style={styles.btnText}>SE CONNECTER</Text></>
+          }
+        </Pressable>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -155,12 +169,17 @@ const styles = StyleSheet.create({
   input: { flex: 1, fontSize: 15 },
   eyeBtn: { padding: 4 },
   error: { color: "#ef4444", fontSize: 13, marginBottom: 12, textAlign: "center" },
-  btn: {
-    height: 56, borderRadius: 999, flexDirection: "row",
-    alignItems: "center", justifyContent: "center", gap: 8, marginTop: 8,
-  },
-  btnText: { color: "#fff", fontSize: 14, fontWeight: "800", letterSpacing: 0.8 },
-  switchRow: { flexDirection: "row", justifyContent: "center", marginTop: 24 },
+  switchRow: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
   switchText: { fontSize: 14 },
   linkText: { fontSize: 14, fontWeight: "700" },
+  footer: {
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    backgroundColor: "transparent",
+  },
+  btn: {
+    height: 56, borderRadius: 999, flexDirection: "row",
+    alignItems: "center", justifyContent: "center", gap: 8,
+  },
+  btnText: { color: "#fff", fontSize: 14, fontWeight: "800", letterSpacing: 0.8 },
 });
