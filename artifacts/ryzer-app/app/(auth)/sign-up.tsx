@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, Pressable, StyleSheet,
   ScrollView, Platform, ActivityIndicator, Image,
 } from "react-native";
-import { useSignUp, useAuth } from "@clerk/expo";
+import { useSignUp } from "@clerk/expo";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -19,49 +19,73 @@ export default function SignUpScreen() {
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
 
-  const { signUp, errors, fetchStatus } = useSignUp();
-  const { isSignedIn } = useAuth();
+  const { signUp, setActive, isLoaded } = useSignUp();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [verifyCode, setVerifyCode] = useState("");
-
-  const isFetching = fetchStatus === "fetching";
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSignUp = async () => {
-    const { error } = await signUp.password({ emailAddress: email, password });
-    if (error) return;
-    await signUp.verifications.sendEmailCode();
-  };
-
-  const handleVerify = async () => {
-    await signUp.verifications.verifyEmailCode({ code: verifyCode });
-    if (signUp.status === "complete") {
-      await signUp.finalize({
-        navigate: ({ decorateUrl }) => {
-          const url = decorateUrl("/(setup)/profile-setup");
-          router.replace(url.startsWith("http") ? "/(setup)/profile-setup" : (url as any));
-        },
-      });
+    if (!isLoaded) return;
+    setError(null);
+    setIsLoading(true);
+    try {
+      await signUp.create({ emailAddress: email, password });
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      setPendingVerification(true);
+    } catch (err: any) {
+      const clerkError = err?.errors?.[0];
+      setError(clerkError?.longMessage ?? clerkError?.message ?? "Erreur lors de la création du compte");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (isSignedIn) {
-    router.replace("/");
-    return null;
-  }
+  const handleVerify = async () => {
+    if (!isLoaded) return;
+    setError(null);
+    setIsLoading(true);
+    try {
+      const result = await signUp.attemptEmailAddressVerification({ code: verifyCode });
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        router.replace("/(setup)/profile-setup");
+      }
+    } catch (err: any) {
+      const clerkError = err?.errors?.[0];
+      setError(clerkError?.longMessage ?? clerkError?.message ?? "Code invalide");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  // OTP verification step
-  if (
-    signUp.status === "missing_requirements" &&
-    signUp.unverifiedFields?.includes("email_address") &&
-    signUp.missingFields?.length === 0
-  ) {
+  const handleResend = async () => {
+    try {
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+    } catch {}
+  };
+
+  const handleClose = () => {
+    if (pendingVerification) {
+      setPendingVerification(false);
+      return;
+    }
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/onboarding");
+    }
+  };
+
+  if (pendingVerification) {
     return (
       <View style={[styles.root, { backgroundColor: colors.background }]}>
         <ScrollView contentContainerStyle={{ padding: 24, paddingTop: topPad + 24, paddingBottom: bottomPad + 24 }}>
-          <Pressable onPress={() => router.back()} style={styles.closeBtn}>
+          <Pressable onPress={handleClose} style={styles.closeBtn}>
             <Feather name="x" size={20} color={colors.mutedForeground} />
           </Pressable>
 
@@ -73,7 +97,8 @@ export default function SignUpScreen() {
             CHECK{"\n"}<Text style={{ color: BLUE }}>TON MAIL</Text>
           </Text>
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-            Un code à 6 chiffres a été envoyé à{"\n"}<Text style={{ color: colors.foreground, fontWeight: "700" }}>{email}</Text>
+            Un code à 6 chiffres a été envoyé à{"\n"}
+            <Text style={{ color: colors.foreground, fontWeight: "700" }}>{email}</Text>
           </Text>
 
           <Text style={[styles.label, { color: colors.mutedForeground }]}>CODE DE VÉRIFICATION</Text>
@@ -90,20 +115,21 @@ export default function SignUpScreen() {
               autoFocus
             />
           </View>
-          {errors?.fields?.code && <Text style={styles.error}>{errors.fields.code.message}</Text>}
+
+          {error && <Text style={styles.error}>{error}</Text>}
 
           <Pressable
-            style={[styles.btn, { backgroundColor: BLUE, opacity: (verifyCode.length < 6 || isFetching) ? 0.6 : 1 }]}
+            style={[styles.btn, { backgroundColor: BLUE, opacity: (verifyCode.length < 6 || isLoading) ? 0.6 : 1 }]}
             onPress={handleVerify}
-            disabled={verifyCode.length < 6 || isFetching}
+            disabled={verifyCode.length < 6 || isLoading}
           >
-            {isFetching
+            {isLoading
               ? <ActivityIndicator color="#fff" />
               : <><Feather name="check" size={16} color="#fff" /><Text style={styles.btnText}>VÉRIFIER MON COMPTE</Text></>
             }
           </Pressable>
 
-          <Pressable onPress={() => signUp.verifications.sendEmailCode()} style={styles.link}>
+          <Pressable onPress={handleResend} style={styles.link}>
             <Text style={[styles.linkText, { color: BLUE }]}>Renvoyer le code</Text>
           </Pressable>
         </ScrollView>
@@ -117,7 +143,7 @@ export default function SignUpScreen() {
         contentContainerStyle={{ padding: 24, paddingTop: topPad + 24, paddingBottom: bottomPad + 24 }}
         keyboardShouldPersistTaps="handled"
       >
-        <Pressable onPress={() => router.back()} style={styles.closeBtn}>
+        <Pressable onPress={handleClose} style={styles.closeBtn}>
           <Feather name="x" size={20} color={colors.mutedForeground} />
         </Pressable>
 
@@ -149,7 +175,6 @@ export default function SignUpScreen() {
             autoCapitalize="none"
           />
         </View>
-        {errors?.fields?.emailAddress && <Text style={styles.error}>{errors.fields.emailAddress.message}</Text>}
 
         <Text style={[styles.label, { color: colors.mutedForeground }]}>MOT DE PASSE</Text>
         <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -166,20 +191,20 @@ export default function SignUpScreen() {
             <Feather name={showPassword ? "eye-off" : "eye"} size={16} color={colors.mutedForeground} />
           </Pressable>
         </View>
-        {errors?.fields?.password && <Text style={styles.error}>{errors.fields.password.message}</Text>}
+
+        {error && <Text style={styles.error}>{error}</Text>}
 
         <Pressable
-          style={[styles.btn, { backgroundColor: BLUE, opacity: (!email || !password || isFetching) ? 0.6 : 1 }]}
+          style={[styles.btn, { backgroundColor: BLUE, opacity: (!email || !password || isLoading) ? 0.6 : 1 }]}
           onPress={handleSignUp}
-          disabled={!email || !password || isFetching}
+          disabled={!email || !password || isLoading}
         >
-          {isFetching
+          {isLoading
             ? <ActivityIndicator color="#fff" />
             : <><Feather name="zap" size={16} color="#fff" /><Text style={styles.btnText}>CRÉER MON COMPTE</Text></>
           }
         </Pressable>
 
-        {/* Required for Clerk bot protection */}
         <View nativeID="clerk-captcha" />
 
         <View style={styles.switchRow}>
@@ -217,7 +242,7 @@ const styles = StyleSheet.create({
   inputIcon: { marginRight: 10 },
   input: { flex: 1, fontSize: 15 },
   eyeBtn: { padding: 4 },
-  error: { color: "#ef4444", fontSize: 12, marginTop: -10, marginBottom: 10 },
+  error: { color: "#ef4444", fontSize: 13, marginBottom: 12, textAlign: "center" },
   btn: {
     height: 56, borderRadius: 999, flexDirection: "row",
     alignItems: "center", justifyContent: "center", gap: 8, marginTop: 8,
