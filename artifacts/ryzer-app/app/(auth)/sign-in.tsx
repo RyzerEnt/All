@@ -13,6 +13,9 @@ import { useColors } from "@/hooks/useColors";
 const BLUE = "#2563eb";
 const ORANGE = "#f97316";
 
+type Step = "credentials" | "mfa";
+type MfaStrategy = "totp" | "phone_code" | "backup_code";
+
 export default function SignInScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -22,15 +25,18 @@ export default function SignInScreen() {
 
   const { signIn, setActive, isLoaded } = useSignIn();
 
+  const [step, setStep] = useState<Step>("credentials");
+  const [mfaStrategy, setMfaStrategy] = useState<MfaStrategy>("totp");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [mfaCode, setMfaCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // True when the button should be non-interactive
   const isBusy = !isLoaded || isLoading;
 
+  /* ── STEP 1 : email + password ── */
   const handleSignIn = async () => {
     if (isBusy) return;
     if (!email.trim() || !password.trim()) {
@@ -45,16 +51,28 @@ export default function SignInScreen() {
         identifier: email.trim(),
         password,
       });
-      console.log("[SignIn] status:", result.status, "sessionId:", result.createdSessionId);
+
       if (result.status === "complete") {
         await setActive!({ session: result.createdSessionId });
         router.replace("/(tabs)");
+      } else if (result.status === "needs_second_factor") {
+        // Detect which MFA strategy is available
+        const supported = (result as any).supportedSecondFactors as { strategy: string }[] | undefined;
+        if (supported?.find((s) => s.strategy === "phone_code")) {
+          setMfaStrategy("phone_code");
+          // Trigger SMS delivery
+          await signIn!.prepareSecondFactor({ strategy: "phone_code" });
+        } else if (supported?.find((s) => s.strategy === "backup_code")) {
+          setMfaStrategy("backup_code");
+        } else {
+          // Default: TOTP (authenticator app — no prepare needed)
+          setMfaStrategy("totp");
+        }
+        setStep("mfa");
       } else {
-        // Statut inattendu (ex : MFA requis, vérification email, etc.)
-        setError(`Connexion incomplète (statut : ${result.status}). Contacte le support.`);
+        setError(`Erreur inattendue (statut: ${result.status}). Réessaie.`);
       }
     } catch (err: any) {
-      console.log("[SignIn] error:", JSON.stringify(err?.errors));
       const clerkError = err?.errors?.[0];
       setError(clerkError?.longMessage ?? clerkError?.message ?? "Identifiants incorrects.");
     } finally {
@@ -62,11 +80,119 @@ export default function SignInScreen() {
     }
   };
 
+  /* ── STEP 2 : MFA code ── */
+  const handleMfa = async () => {
+    if (!isLoaded || isLoading || mfaCode.length < 6) return;
+    setError(null);
+    setIsLoading(true);
+    try {
+      const result = await signIn!.attemptSecondFactor({
+        strategy: mfaStrategy,
+        code: mfaCode,
+      } as any);
+
+      if (result.status === "complete") {
+        await setActive!({ session: result.createdSessionId });
+        router.replace("/(tabs)");
+      } else {
+        setError(`Erreur inattendue (statut: ${result.status}). Réessaie.`);
+      }
+    } catch (err: any) {
+      const clerkError = err?.errors?.[0];
+      setError(clerkError?.longMessage ?? clerkError?.message ?? "Code invalide.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleClose = () => {
+    if (step === "mfa") { setStep("credentials"); setMfaCode(""); setError(null); return; }
     if (router.canGoBack()) router.back();
     else router.replace("/onboarding");
   };
 
+  /* ── MFA screen ── */
+  if (step === "mfa") {
+    const isTOTP = mfaStrategy === "totp";
+    const isPhone = mfaStrategy === "phone_code";
+    const isBackup = mfaStrategy === "backup_code";
+
+    const mfaBusy = !isLoaded || isLoading || mfaCode.length < 6;
+
+    return (
+      <KeyboardAvoidingView
+        style={[styles.root, { backgroundColor: colors.background }]}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={{ padding: 24, paddingTop: topPad + 24, paddingBottom: bottomPad + 24 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
+            <Feather name="arrow-left" size={20} color={colors.mutedForeground} />
+          </TouchableOpacity>
+
+          <View style={[styles.mfaIconWrap, { backgroundColor: "rgba(37,99,235,0.1)" }]}>
+            <Feather name={isTOTP ? "shield" : isPhone ? "smartphone" : "key"} size={32} color={BLUE} />
+          </View>
+
+          <Text style={[styles.title, { color: colors.foreground }]}>
+            {isTOTP ? "AUTHENTICATOR\n" : isPhone ? "CODE SMS\n" : "CODE DE\n"}
+            <Text style={{ color: BLUE }}>
+              {isTOTP ? "APP" : isPhone ? "ENVOYÉ" : "SECOURS"}
+            </Text>
+          </Text>
+
+          <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+            {isTOTP
+              ? "Ouvre ton application d'authentification et saisis le code à 6 chiffres."
+              : isPhone
+              ? "Un code à 6 chiffres a été envoyé par SMS sur ton numéro de téléphone."
+              : "Saisis l'un de tes codes de secours à 8 caractères."}
+          </Text>
+
+          <Text style={[styles.label, { color: colors.mutedForeground }]}>
+            {isBackup ? "CODE DE SECOURS" : "CODE À 6 CHIFFRES"}
+          </Text>
+          <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: BLUE, borderWidth: 2 }]}>
+            <Feather name="lock" size={16} color={BLUE} style={styles.inputIcon} />
+            <TextInput
+              style={[
+                styles.input,
+                { color: colors.foreground, fontSize: isBackup ? 16 : 22, letterSpacing: isBackup ? 2 : 6, fontWeight: "700" },
+              ]}
+              value={mfaCode}
+              onChangeText={setMfaCode}
+              placeholder={isBackup ? "xxxxxxxx" : "000000"}
+              placeholderTextColor={colors.mutedForeground}
+              keyboardType={isBackup ? "default" : "numeric"}
+              maxLength={isBackup ? 10 : 6}
+              autoFocus
+              autoCapitalize="none"
+              returnKeyType="done"
+              onSubmitEditing={handleMfa}
+            />
+          </View>
+
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          <TouchableOpacity
+            style={[styles.btn, { backgroundColor: BLUE, opacity: mfaBusy ? 0.6 : 1 }]}
+            onPress={handleMfa}
+            disabled={mfaBusy}
+            activeOpacity={0.8}
+          >
+            {isLoading
+              ? <ActivityIndicator color="#fff" />
+              : <><Feather name="check" size={16} color="#fff" /><Text style={styles.btnText}>VÉRIFIER</Text></>
+            }
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
+
+  /* ── Credentials screen ── */
   return (
     <KeyboardAvoidingView
       style={[styles.root, { backgroundColor: colors.background }]}
@@ -140,12 +266,7 @@ export default function SignInScreen() {
         >
           {isBusy
             ? <ActivityIndicator color="#fff" />
-            : (
-              <>
-                <Feather name="zap" size={16} color="#fff" />
-                <Text style={styles.btnText}>SE CONNECTER</Text>
-              </>
-            )
+            : <><Feather name="zap" size={16} color="#fff" /><Text style={styles.btnText}>SE CONNECTER</Text></>
           }
         </TouchableOpacity>
 
@@ -162,8 +283,13 @@ export default function SignInScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  closeBtn: { alignSelf: "flex-end", padding: 8, marginBottom: 8 },
+  closeBtn: { alignSelf: "flex-start", padding: 8, marginBottom: 8 },
   logo: { width: 64, height: 64, alignSelf: "center", marginBottom: 20, borderRadius: 16 },
+  mfaIconWrap: {
+    width: 72, height: 72, borderRadius: 20,
+    alignItems: "center", justifyContent: "center",
+    alignSelf: "center", marginBottom: 20,
+  },
   title: { fontSize: 32, fontWeight: "900", letterSpacing: -1, lineHeight: 36, marginBottom: 8 },
   subtitle: { fontSize: 14, marginBottom: 32, lineHeight: 20 },
   label: { fontSize: 10, fontWeight: "700", letterSpacing: 1, marginBottom: 6 },
