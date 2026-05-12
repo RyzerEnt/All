@@ -60,8 +60,7 @@ outputType = "console"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=8080 pnpm --filter @workspace/ryzer-app dev"
-waitForPort = 8080
+args = "PORT=22479 pnpm --filter @workspace/ryzer-app dev"
 
 [agent]
 stack = "BEST_EFFORT_FALLBACK"
