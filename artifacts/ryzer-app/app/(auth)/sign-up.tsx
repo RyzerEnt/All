@@ -30,20 +30,19 @@ export default function SignUpScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const isBusy = !isLoaded || isLoading;
+
   const handleSignUp = async () => {
+    if (isBusy) return;
     if (!email.trim() || !password.trim()) {
-      setError("Remplis ton adresse mail et ton mot de passe.");
-      return;
-    }
-    if (!isLoaded) {
-      setError("Chargement en cours, réessaie dans un instant.");
+      setError("Saisis ton adresse mail et ton mot de passe.");
       return;
     }
     setError(null);
     setIsLoading(true);
     try {
-      await signUp.create({ emailAddress: email.trim(), password });
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      await signUp!.create({ emailAddress: email.trim(), password });
+      await signUp!.prepareEmailAddressVerification({ strategy: "email_code" });
       setPendingVerification(true);
     } catch (err: any) {
       const clerkError = err?.errors?.[0];
@@ -58,9 +57,9 @@ export default function SignUpScreen() {
     setError(null);
     setIsLoading(true);
     try {
-      const result = await signUp.attemptEmailAddressVerification({ code: verifyCode });
+      const result = await signUp!.attemptEmailAddressVerification({ code: verifyCode });
       if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+        await setActive!({ session: result.createdSessionId });
         router.replace("/(setup)/profile-setup");
       }
     } catch (err: any) {
@@ -72,9 +71,7 @@ export default function SignUpScreen() {
   };
 
   const handleResend = async () => {
-    try {
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-    } catch {}
+    try { await signUp!.prepareEmailAddressVerification({ strategy: "email_code" }); } catch {}
   };
 
   const handleClose = () => {
@@ -90,7 +87,7 @@ export default function SignUpScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
-          contentContainerStyle={{ padding: 24, paddingTop: topPad + 24, paddingBottom: 24 }}
+          contentContainerStyle={{ padding: 24, paddingTop: topPad + 24, paddingBottom: bottomPad + 24 }}
           keyboardShouldPersistTaps="handled"
         >
           <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
@@ -144,7 +141,6 @@ export default function SignUpScreen() {
             <Text style={[styles.linkText, { color: BLUE }]}>Renvoyer le code</Text>
           </TouchableOpacity>
         </ScrollView>
-        <View style={{ height: bottomPad, backgroundColor: colors.background }} />
       </KeyboardAvoidingView>
     );
   }
@@ -155,7 +151,7 @@ export default function SignUpScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
-        contentContainerStyle={{ padding: 24, paddingTop: topPad + 24, paddingBottom: 24 }}
+        contentContainerStyle={{ padding: 24, paddingTop: topPad + 24, paddingBottom: bottomPad + 24 }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -217,12 +213,12 @@ export default function SignUpScreen() {
         <View nativeID="clerk-captcha" />
 
         <TouchableOpacity
-          style={[styles.btn, { backgroundColor: BLUE, opacity: isLoading ? 0.7 : 1 }]}
+          style={[styles.btn, { backgroundColor: BLUE, opacity: isBusy ? 0.6 : 1 }]}
           onPress={handleSignUp}
-          disabled={isLoading}
+          disabled={isBusy}
           activeOpacity={0.8}
         >
-          {isLoading
+          {isBusy
             ? <ActivityIndicator color="#fff" />
             : <><Feather name="zap" size={16} color="#fff" /><Text style={styles.btnText}>CRÉER MON COMPTE</Text></>
           }
@@ -235,7 +231,6 @@ export default function SignUpScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-      <View style={{ height: bottomPad, backgroundColor: colors.background }} />
     </KeyboardAvoidingView>
   );
 }

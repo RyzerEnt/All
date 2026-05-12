@@ -28,24 +28,24 @@ export default function SignInScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // True when the button should be non-interactive
+  const isBusy = !isLoaded || isLoading;
+
   const handleSignIn = async () => {
+    if (isBusy) return;
     if (!email.trim() || !password.trim()) {
-      setError("Remplis ton adresse mail et ton mot de passe.");
-      return;
-    }
-    if (!isLoaded) {
-      setError("Chargement en cours, réessaie dans un instant.");
+      setError("Saisis ton adresse mail et ton mot de passe.");
       return;
     }
     setError(null);
     setIsLoading(true);
     try {
-      const result = await signIn.create({
+      const result = await signIn!.create({
         identifier: email.trim(),
         password,
       });
       if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
+        await setActive!({ session: result.createdSessionId });
         router.replace("/");
       }
     } catch (err: any) {
@@ -67,7 +67,7 @@ export default function SignInScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
-        contentContainerStyle={{ padding: 24, paddingTop: topPad + 24, paddingBottom: 24 }}
+        contentContainerStyle={{ padding: 24, paddingTop: topPad + 24, paddingBottom: bottomPad + 24 }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -126,16 +126,20 @@ export default function SignInScreen() {
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        {/* Button inside scroll so it's never under the keyboard */}
         <TouchableOpacity
-          style={[styles.btn, { backgroundColor: BLUE, opacity: isLoading ? 0.7 : 1 }]}
+          style={[styles.btn, { backgroundColor: BLUE, opacity: isBusy ? 0.6 : 1 }]}
           onPress={handleSignIn}
-          disabled={isLoading}
+          disabled={isBusy}
           activeOpacity={0.8}
         >
-          {isLoading
+          {isBusy
             ? <ActivityIndicator color="#fff" />
-            : <><Feather name="zap" size={16} color="#fff" /><Text style={styles.btnText}>SE CONNECTER</Text></>
+            : (
+              <>
+                <Feather name="zap" size={16} color="#fff" />
+                <Text style={styles.btnText}>SE CONNECTER</Text>
+              </>
+            )
           }
         </TouchableOpacity>
 
@@ -146,9 +150,6 @@ export default function SignInScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
-
-      {/* Safe area spacer at bottom */}
-      <View style={{ height: bottomPad, backgroundColor: colors.background }} />
     </KeyboardAvoidingView>
   );
 }
