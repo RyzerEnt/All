@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import {
-  View, Text, TextInput, Pressable, StyleSheet,
+  View, Text, TextInput, TouchableOpacity, StyleSheet,
   ScrollView, Platform, ActivityIndicator, Image,
   KeyboardAvoidingView,
 } from "react-native";
@@ -29,13 +29,19 @@ export default function SignInScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = async () => {
-    if (!isLoaded) return;
-    if (!email || !password) return;
+    if (!email.trim() || !password.trim()) {
+      setError("Remplis ton adresse mail et ton mot de passe.");
+      return;
+    }
+    if (!isLoaded) {
+      setError("Chargement en cours, réessaie dans un instant.");
+      return;
+    }
     setError(null);
     setIsLoading(true);
     try {
       const result = await signIn.create({
-        identifier: email,
+        identifier: email.trim(),
         password,
       });
       if (result.status === "complete") {
@@ -44,34 +50,30 @@ export default function SignInScreen() {
       }
     } catch (err: any) {
       const clerkError = err?.errors?.[0];
-      setError(clerkError?.longMessage ?? clerkError?.message ?? "Identifiants incorrects");
+      setError(clerkError?.longMessage ?? clerkError?.message ?? "Identifiants incorrects.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleClose = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace("/onboarding");
-    }
+    if (router.canGoBack()) router.back();
+    else router.replace("/onboarding");
   };
 
   return (
     <KeyboardAvoidingView
       style={[styles.root, { backgroundColor: colors.background }]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <ScrollView
         contentContainerStyle={{ padding: 24, paddingTop: topPad + 24, paddingBottom: 24 }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <Pressable onPress={handleClose} style={styles.closeBtn}>
+        <TouchableOpacity onPress={handleClose} style={styles.closeBtn}>
           <Feather name="x" size={20} color={colors.mutedForeground} />
-        </Pressable>
+        </TouchableOpacity>
 
         <Image
           source={require("@/assets/images/icon.png")}
@@ -117,41 +119,43 @@ export default function SignInScreen() {
             returnKeyType="done"
             onSubmitEditing={handleSignIn}
           />
-          <Pressable onPress={() => setShowPassword((s) => !s)} style={styles.eyeBtn}>
+          <TouchableOpacity onPress={() => setShowPassword((s) => !s)} style={styles.eyeBtn}>
             <Feather name={showPassword ? "eye-off" : "eye"} size={16} color={colors.mutedForeground} />
-          </Pressable>
+          </TouchableOpacity>
         </View>
 
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <View style={styles.switchRow}>
-          <Text style={[styles.switchText, { color: colors.mutedForeground }]}>Pas encore de compte ?</Text>
-          <Pressable onPress={() => router.replace("/(auth)/sign-up")}>
-            <Text style={[styles.linkText, { color: BLUE }]}> S'inscrire</Text>
-          </Pressable>
-        </View>
-      </ScrollView>
-
-      {/* Button fixed above keyboard */}
-      <View style={[styles.footer, { paddingBottom: bottomPad + 16 }]}>
-        <Pressable
+        {/* Button inside scroll so it's never under the keyboard */}
+        <TouchableOpacity
           style={[styles.btn, { backgroundColor: BLUE, opacity: isLoading ? 0.7 : 1 }]}
           onPress={handleSignIn}
           disabled={isLoading}
+          activeOpacity={0.8}
         >
           {isLoading
             ? <ActivityIndicator color="#fff" />
             : <><Feather name="zap" size={16} color="#fff" /><Text style={styles.btnText}>SE CONNECTER</Text></>
           }
-        </Pressable>
-      </View>
+        </TouchableOpacity>
+
+        <View style={styles.switchRow}>
+          <Text style={[styles.switchText, { color: colors.mutedForeground }]}>Pas encore de compte ?</Text>
+          <TouchableOpacity onPress={() => router.replace("/(auth)/sign-up")}>
+            <Text style={[styles.linkText, { color: BLUE }]}> S'inscrire</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      {/* Safe area spacer at bottom */}
+      <View style={{ height: bottomPad, backgroundColor: colors.background }} />
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  closeBtn: { alignSelf: "flex-end", padding: 4, marginBottom: 8 },
+  closeBtn: { alignSelf: "flex-end", padding: 8, marginBottom: 8 },
   logo: { width: 64, height: 64, alignSelf: "center", marginBottom: 20, borderRadius: 16 },
   title: { fontSize: 32, fontWeight: "900", letterSpacing: -1, lineHeight: 36, marginBottom: 8 },
   subtitle: { fontSize: 14, marginBottom: 32, lineHeight: 20 },
@@ -169,17 +173,13 @@ const styles = StyleSheet.create({
   input: { flex: 1, fontSize: 15 },
   eyeBtn: { padding: 4 },
   error: { color: "#ef4444", fontSize: 13, marginBottom: 12, textAlign: "center" },
-  switchRow: { flexDirection: "row", justifyContent: "center", marginTop: 8 },
-  switchText: { fontSize: 14 },
-  linkText: { fontSize: 14, fontWeight: "700" },
-  footer: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    backgroundColor: "transparent",
-  },
   btn: {
     height: 56, borderRadius: 999, flexDirection: "row",
     alignItems: "center", justifyContent: "center", gap: 8,
+    marginTop: 8, marginBottom: 20,
   },
   btnText: { color: "#fff", fontSize: 14, fontWeight: "800", letterSpacing: 0.8 },
+  switchRow: { flexDirection: "row", justifyContent: "center" },
+  switchText: { fontSize: 14 },
+  linkText: { fontSize: 14, fontWeight: "700" },
 });
