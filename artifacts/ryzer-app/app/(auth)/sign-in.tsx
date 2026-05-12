@@ -14,7 +14,6 @@ const BLUE = "#2563eb";
 const ORANGE = "#f97316";
 
 type Step = "credentials" | "mfa";
-type MfaStrategy = "totp" | "phone_code" | "backup_code";
 
 export default function SignInScreen() {
   const colors = useColors();
@@ -26,7 +25,6 @@ export default function SignInScreen() {
   const { signIn, setActive, isLoaded } = useSignIn();
 
   const [step, setStep] = useState<Step>("credentials");
-  const [mfaStrategy, setMfaStrategy] = useState<MfaStrategy>("totp");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -56,18 +54,8 @@ export default function SignInScreen() {
         await setActive!({ session: result.createdSessionId });
         router.replace("/(tabs)");
       } else if (result.status === "needs_second_factor") {
-        // Detect which MFA strategy is available
-        const supported = (result as any).supportedSecondFactors as { strategy: string }[] | undefined;
-        if (supported?.find((s) => s.strategy === "phone_code")) {
-          setMfaStrategy("phone_code");
-          // Trigger SMS delivery
-          await signIn!.prepareSecondFactor({ strategy: "phone_code" });
-        } else if (supported?.find((s) => s.strategy === "backup_code")) {
-          setMfaStrategy("backup_code");
-        } else {
-          // Default: TOTP (authenticator app — no prepare needed)
-          setMfaStrategy("totp");
-        }
+        // Send a one-time code to the user's email address
+        await signIn!.prepareSecondFactor({ strategy: "email_code" });
         setStep("mfa");
       } else {
         setError(`Erreur inattendue (statut: ${result.status}). Réessaie.`);
@@ -81,13 +69,19 @@ export default function SignInScreen() {
   };
 
   /* ── STEP 2 : MFA code ── */
+  const handleResendEmail = async () => {
+    try {
+      await signIn!.prepareSecondFactor({ strategy: "email_code" });
+    } catch {}
+  };
+
   const handleMfa = async () => {
     if (!isLoaded || isLoading || mfaCode.length < 6) return;
     setError(null);
     setIsLoading(true);
     try {
       const result = await signIn!.attemptSecondFactor({
-        strategy: mfaStrategy,
+        strategy: "email_code",
         code: mfaCode,
       } as any);
 
@@ -113,10 +107,6 @@ export default function SignInScreen() {
 
   /* ── MFA screen ── */
   if (step === "mfa") {
-    const isTOTP = mfaStrategy === "totp";
-    const isPhone = mfaStrategy === "phone_code";
-    const isBackup = mfaStrategy === "backup_code";
-
     const mfaBusy = !isLoaded || isLoading || mfaCode.length < 6;
 
     return (
@@ -133,42 +123,30 @@ export default function SignInScreen() {
           </TouchableOpacity>
 
           <View style={[styles.mfaIconWrap, { backgroundColor: "rgba(37,99,235,0.1)" }]}>
-            <Feather name={isTOTP ? "shield" : isPhone ? "smartphone" : "key"} size={32} color={BLUE} />
+            <Feather name="mail" size={32} color={BLUE} />
           </View>
 
           <Text style={[styles.title, { color: colors.foreground }]}>
-            {isTOTP ? "AUTHENTICATOR\n" : isPhone ? "CODE SMS\n" : "CODE DE\n"}
-            <Text style={{ color: BLUE }}>
-              {isTOTP ? "APP" : isPhone ? "ENVOYÉ" : "SECOURS"}
-            </Text>
+            {"CHECK\n"}<Text style={{ color: BLUE }}>TON MAIL</Text>
           </Text>
 
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-            {isTOTP
-              ? "Ouvre ton application d'authentification et saisis le code à 6 chiffres."
-              : isPhone
-              ? "Un code à 6 chiffres a été envoyé par SMS sur ton numéro de téléphone."
-              : "Saisis l'un de tes codes de secours à 8 caractères."}
+            Un code à 6 chiffres a été envoyé à{"\n"}
+            <Text style={{ color: colors.foreground, fontWeight: "700" }}>{email}</Text>
           </Text>
 
-          <Text style={[styles.label, { color: colors.mutedForeground }]}>
-            {isBackup ? "CODE DE SECOURS" : "CODE À 6 CHIFFRES"}
-          </Text>
+          <Text style={[styles.label, { color: colors.mutedForeground }]}>CODE À 6 CHIFFRES</Text>
           <View style={[styles.inputWrap, { backgroundColor: colors.card, borderColor: BLUE, borderWidth: 2 }]}>
-            <Feather name="lock" size={16} color={BLUE} style={styles.inputIcon} />
+            <Feather name="shield" size={16} color={BLUE} style={styles.inputIcon} />
             <TextInput
-              style={[
-                styles.input,
-                { color: colors.foreground, fontSize: isBackup ? 16 : 22, letterSpacing: isBackup ? 2 : 6, fontWeight: "700" },
-              ]}
+              style={[styles.input, { color: colors.foreground, fontSize: 22, letterSpacing: 6, fontWeight: "700" }]}
               value={mfaCode}
               onChangeText={setMfaCode}
-              placeholder={isBackup ? "xxxxxxxx" : "000000"}
+              placeholder="000000"
               placeholderTextColor={colors.mutedForeground}
-              keyboardType={isBackup ? "default" : "numeric"}
-              maxLength={isBackup ? 10 : 6}
+              keyboardType="numeric"
+              maxLength={6}
               autoFocus
-              autoCapitalize="none"
               returnKeyType="done"
               onSubmitEditing={handleMfa}
             />
@@ -186,6 +164,13 @@ export default function SignInScreen() {
               ? <ActivityIndicator color="#fff" />
               : <><Feather name="check" size={16} color="#fff" /><Text style={styles.btnText}>VÉRIFIER</Text></>
             }
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={handleResendEmail} style={styles.resendBtn}>
+            <Text style={[styles.resendText, { color: colors.mutedForeground }]}>
+              Tu n'as pas reçu le code ?{" "}
+              <Text style={{ color: BLUE, fontWeight: "700" }}>Renvoyer</Text>
+            </Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -315,4 +300,6 @@ const styles = StyleSheet.create({
   switchRow: { flexDirection: "row", justifyContent: "center" },
   switchText: { fontSize: 14 },
   linkText: { fontSize: 14, fontWeight: "700" },
+  resendBtn: { alignItems: "center", marginTop: 8 },
+  resendText: { fontSize: 13, textAlign: "center" },
 });
