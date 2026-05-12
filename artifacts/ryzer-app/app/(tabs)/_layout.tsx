@@ -1,8 +1,5 @@
 import { BlurView } from "expo-blur";
-import { isLiquidGlassAvailable } from "expo-glass-effect";
 import { Tabs, Redirect } from "expo-router";
-import { Icon, Label, NativeTabs } from "expo-router/unstable-native-tabs";
-import { SymbolView } from "expo-symbols";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { Platform, StyleSheet, View, useColorScheme, ActivityIndicator } from "react-native";
@@ -12,6 +9,31 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { useColors } from "@/hooks/useColors";
 import { useUser } from "@/contexts/UserContext";
+
+// expo-glass-effect and expo-router/unstable-native-tabs are iOS-only
+// Guard them so the web bundle doesn't crash
+let isLiquidGlassAvailable: () => boolean = () => false;
+let NativeTabs: any = null;
+let Icon: any = null;
+let Label: any = null;
+let SymbolView: any = null;
+
+if (Platform.OS === "ios") {
+  try {
+    const glassEffect = require("expo-glass-effect");
+    isLiquidGlassAvailable = glassEffect.isLiquidGlassAvailable;
+  } catch {}
+  try {
+    const nativeTabs = require("expo-router/unstable-native-tabs");
+    NativeTabs = nativeTabs.NativeTabs;
+    Icon = nativeTabs.Icon;
+    Label = nativeTabs.Label;
+  } catch {}
+  try {
+    const symbols = require("expo-symbols");
+    SymbolView = symbols.SymbolView;
+  } catch {}
+}
 
 function AuthAndSetupGuard({ children }: { children: React.ReactNode }) {
   const { isSignedIn, isLoaded, getToken } = useAuth();
@@ -52,6 +74,7 @@ function AuthAndSetupGuard({ children }: { children: React.ReactNode }) {
 }
 
 function NativeTabLayout() {
+  if (!NativeTabs || !Icon || !Label) return <ClassicTabLayout />;
   return (
     <NativeTabs>
       <NativeTabs.Trigger name="index">
@@ -103,7 +126,7 @@ function ClassicTabLayout() {
         options={{
           title: "Accueil",
           tabBarIcon: ({ color }) =>
-            isIOS ? (
+            isIOS && SymbolView ? (
               <SymbolView name="house" tintColor={color} size={24} />
             ) : (
               <Feather name="home" size={22} color={color} />
@@ -115,7 +138,7 @@ function ClassicTabLayout() {
         options={{
           title: "Profil",
           tabBarIcon: ({ color }) =>
-            isIOS ? (
+            isIOS && SymbolView ? (
               <SymbolView name="person" tintColor={color} size={24} />
             ) : (
               <Feather name="user" size={22} color={color} />
@@ -127,6 +150,9 @@ function ClassicTabLayout() {
 }
 
 export default function TabLayout() {
-  const tabContent = isLiquidGlassAvailable() ? <NativeTabLayout /> : <ClassicTabLayout />;
+  const useNative = Platform.OS === "ios" && isLiquidGlassAvailable();
+  const tabContent = useNative ? <NativeTabLayout /> : <ClassicTabLayout />;
   return <AuthAndSetupGuard>{tabContent}</AuthAndSetupGuard>;
 }
+
+const styles = StyleSheet.create({});

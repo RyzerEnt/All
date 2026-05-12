@@ -6,11 +6,12 @@ import {
   useFonts,
 } from "@expo-google-fonts/inter";
 import { ClerkProvider, ClerkLoaded } from "@clerk/expo";
-import { tokenCache } from "@clerk/expo/token-cache";
+import { tokenCache as nativeTokenCache } from "@clerk/expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -22,8 +23,10 @@ SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
-const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 const proxyUrl = process.env.EXPO_PUBLIC_CLERK_PROXY_URL || undefined;
+// SecureStore-based tokenCache only works on native; on web Clerk uses cookies
+const tokenCache = Platform.OS === "web" ? undefined : nativeTokenCache;
 
 function RootLayoutNav() {
   return (
@@ -33,6 +36,7 @@ function RootLayoutNav() {
       <Stack.Screen name="(auth)" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
       <Stack.Screen name="(setup)" options={{ presentation: "modal", animation: "slide_from_bottom" }} />
       <Stack.Screen name="session" />
+      <Stack.Screen name="test" options={{ headerShown: false }} />
     </Stack>
   );
 }
