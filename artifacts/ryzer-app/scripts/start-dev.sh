@@ -14,4 +14,4 @@ if [ -n "$PID" ]; then
 fi
 
 echo "Starting Expo on port $EXPO_PORT..."
-exec pnpm exec expo start . --port $EXPO_PORT
+exec pnpm exec expo start . --port $EXPO_PORT --non-interactive
