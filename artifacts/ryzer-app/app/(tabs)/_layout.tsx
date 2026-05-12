@@ -2,7 +2,7 @@ import { BlurView } from "expo-blur";
 import { Tabs, Redirect } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { Platform, StyleSheet, View, useColorScheme, ActivityIndicator } from "react-native";
+import { Platform, StyleSheet, View, Text, useColorScheme, ActivityIndicator } from "react-native";
 import { useAuth } from "@clerk/expo";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -35,32 +35,51 @@ if (Platform.OS === "ios") {
   } catch {}
 }
 
+// How long to wait for Clerk auth state before giving up and redirecting
+const AUTH_TIMEOUT_MS = 6000;
+
 function AuthAndSetupGuard({ children }: { children: React.ReactNode }) {
   const { isSignedIn, isLoaded, getToken } = useAuth();
   const { profile, isLoading } = useUser();
   const colors = useColors();
+
   const [onboardingChecked, setOnboardingChecked] = React.useState(false);
   const [hasSeenOnboarding, setHasSeenOnboarding] = React.useState(false);
+
+  // Timeout fallback: if Clerk or AsyncStorage hangs, unblock after AUTH_TIMEOUT_MS
+  const [timedOut, setTimedOut] = React.useState(false);
+  React.useEffect(() => {
+    const t = setTimeout(() => setTimedOut(true), AUTH_TIMEOUT_MS);
+    return () => clearTimeout(t);
+  }, []);
 
   React.useEffect(() => {
     setAuthTokenGetter(() => getToken());
   }, [getToken]);
 
   React.useEffect(() => {
-    AsyncStorage.getItem("hasSeenOnboarding").then((val) => {
-      setHasSeenOnboarding(val === "true");
-      setOnboardingChecked(true);
-    });
+    AsyncStorage.getItem("hasSeenOnboarding")
+      .then((val) => {
+        setHasSeenOnboarding(val === "true");
+        setOnboardingChecked(true);
+      })
+      .catch(() => {
+        // AsyncStorage unavailable — treat as first launch
+        setOnboardingChecked(true);
+      });
   }, []);
 
-  if (!isLoaded || !onboardingChecked) {
+  const isAuthReady = isLoaded && onboardingChecked;
+
+  if (!isAuthReady && !timedOut) {
     return (
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background }}>
-        <ActivityIndicator color={colors.primary} />
+        <ActivityIndicator color={colors.primary} size="large" />
       </View>
     );
   }
 
+  // After timeout, if still not loaded treat user as signed out
   if (!isSignedIn) {
     if (!hasSeenOnboarding) return <Redirect href="/onboarding" />;
     return <Redirect href="/(auth)/sign-in" />;

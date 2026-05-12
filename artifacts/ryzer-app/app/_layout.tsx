@@ -5,15 +5,14 @@ import {
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
-import { ClerkProvider, ClerkLoaded } from "@clerk/expo";
+import { ClerkProvider } from "@clerk/expo";
 import { tokenCache as nativeTokenCache } from "@clerk/expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -49,27 +48,40 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
+  // Safety timeout: hide splash after 4s even if fonts are still loading
+  const splashHidden = useRef(false);
   useEffect(() => {
-    if (fontsLoaded || fontError) {
-      SplashScreen.hideAsync();
+    const timer = setTimeout(() => {
+      if (!splashHidden.current) {
+        splashHidden.current = true;
+        SplashScreen.hideAsync().catch(() => {});
+      }
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if ((fontsLoaded || fontError) && !splashHidden.current) {
+      splashHidden.current = true;
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError]);
 
+  // Don't block render — show content even if fonts didn't load yet (after timeout)
   if (!fontsLoaded && !fontError) return null;
 
   return (
     <SafeAreaProvider>
       <ErrorBoundary>
+        {/* ClerkLoaded removed — AuthAndSetupGuard handles loading state with timeout */}
         <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} proxyUrl={proxyUrl}>
-          <ClerkLoaded>
-            <QueryClientProvider client={queryClient}>
-              <UserProvider>
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                  <RootLayoutNav />
-                </GestureHandlerRootView>
-              </UserProvider>
-            </QueryClientProvider>
-          </ClerkLoaded>
+          <QueryClientProvider client={queryClient}>
+            <UserProvider>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <RootLayoutNav />
+              </GestureHandlerRootView>
+            </UserProvider>
+          </QueryClientProvider>
         </ClerkProvider>
       </ErrorBoundary>
     </SafeAreaProvider>
