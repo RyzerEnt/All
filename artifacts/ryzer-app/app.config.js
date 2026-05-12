@@ -54,6 +54,9 @@ module.exports = {
         },
       ],
     ],
+    updates: {
+      enabled: false,
+    },
     experiments: {
       typedRoutes: true,
       reactCompiler: true,
