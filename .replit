@@ -103,7 +103,7 @@ PORT = "8099"
 
 [nix]
 channel = "stable-25_05"
-packages = ["eas-cli"]
+packages = ["eas-cli", "zulu23"]
 
 [objectStorage]
 defaultBucketID = "replit-objstore-3822dfee-3d27-4431-b6c5-6cf30501d18b"
