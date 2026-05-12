@@ -41,14 +41,20 @@ export default function SignInScreen() {
     setIsLoading(true);
     try {
       const result = await signIn!.create({
+        strategy: "password",
         identifier: email.trim(),
         password,
       });
+      console.log("[SignIn] status:", result.status, "sessionId:", result.createdSessionId);
       if (result.status === "complete") {
         await setActive!({ session: result.createdSessionId });
-        router.replace("/");
+        router.replace("/(tabs)");
+      } else {
+        // Statut inattendu (ex : MFA requis, vérification email, etc.)
+        setError(`Connexion incomplète (statut : ${result.status}). Contacte le support.`);
       }
     } catch (err: any) {
+      console.log("[SignIn] error:", JSON.stringify(err?.errors));
       const clerkError = err?.errors?.[0];
       setError(clerkError?.longMessage ?? clerkError?.message ?? "Identifiants incorrects.");
     } finally {

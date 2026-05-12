@@ -1,5 +1,4 @@
 uploads = []
-outputs = []
 
 [[generated]]
 id = "M6kum5iaa_JZvmIEfMTSp"
@@ -36,3 +35,9 @@ id = "ADNgJlUlLoJOwltegCD6n"
 uri = "file://artifacts/ryzer-app/assets/images/icon.png"
 type = "image"
 title = "ryzer app icon"
+
+[[outputs]]
+id = "Wqe0T6r9IxxS-9eaa6Bf1"
+uri = "file://mobile.md"
+type = "text"
+title = "mobile.md — Guide bugs Expo / Replit"
