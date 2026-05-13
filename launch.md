@@ -146,12 +146,12 @@ pnpm --filter @workspace/api-server run build
 pnpm --filter @workspace/ryzer-site run build
 
 # Calculateur sport
-pnpm --filter @workspace/sport-calc run build
+pnpm --filter @workspace/test-app run build
 ```
 
 Les fichiers statiques sont dans :
 - `artifacts/ryzer-site/dist/`
-- `artifacts/sport-calc/dist/`
+- `artifacts/test-app/dist/`
 - `artifacts/api-server/dist/`
 
 ---
@@ -231,7 +231,7 @@ sudo nano /etc/nginx/sites-available/sport-calc
 server {
     server_name calc.ton-domaine.com;
 
-    root /home/pi/ryzer/artifacts/sport-calc/dist;
+    root /home/pi/ryzer/artifacts/test-app/dist;
     index index.html;
 
     location / {
@@ -365,7 +365,7 @@ pnpm install
 # Rebuilder ce qui a changé
 pnpm --filter @workspace/api-server run build
 pnpm --filter @workspace/ryzer-site run build
-pnpm --filter @workspace/sport-calc run build
+pnpm --filter @workspace/test-app run build
 
 # Redémarrer l'API
 pm2 restart ryzer-api
