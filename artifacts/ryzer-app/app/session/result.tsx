@@ -7,6 +7,7 @@ import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/useColors";
 import { useUser } from "@/contexts/UserContext";
+import { FlameIcon } from "@/components/FlameIcon";
 
 type MCIcon = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 
@@ -87,9 +88,7 @@ export default function ResultScreen() {
               borderColor: multiplierApplied ? "rgba(249,115,22,0.3)" : "rgba(37,99,235,0.2)",
             },
           ]}>
-            <View style={[styles.streakIconWrap, { backgroundColor: multiplierApplied ? "rgba(249,115,22,0.15)" : "rgba(37,99,235,0.12)" }]}>
-              <MaterialCommunityIcons name="lightning-bolt" size={18} color={multiplierApplied ? ORANGE : BLUE} />
-            </View>
+            <FlameIcon size={28} color={multiplierApplied ? ORANGE : BLUE} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.streakText, { color: multiplierApplied ? ORANGE : BLUE }]}>
                 {currentStreak} JOUR{currentStreak > 1 ? "S" : ""} D'AFFILÉE
@@ -214,7 +213,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderRadius: 12, padding: 12,
     flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12, width: "100%",
   },
-  streakIconWrap: { width: 32, height: 32, borderRadius: 9, alignItems: "center", justifyContent: "center" },
+
   streakText: { fontSize: 12, fontWeight: "800", letterSpacing: 0.3 },
   streakSub: { fontSize: 10, fontWeight: "500", marginTop: 1 },
   multiplierBadge: { borderRadius: 7, paddingHorizontal: 8, paddingVertical: 4 },

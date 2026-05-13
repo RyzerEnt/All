@@ -6,6 +6,7 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useUser } from "@/contexts/UserContext";
+import { FlameIcon } from "@/components/FlameIcon";
 
 type MCIcon = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 
@@ -74,9 +75,7 @@ export default function HomeScreen() {
                 : "rgba(37,99,235,0.2)",
             },
           ]}>
-            <View style={[styles.streakIconWrap, { backgroundColor: (profile?.currentStreak ?? 0) >= 3 ? "rgba(249,115,22,0.15)" : "rgba(37,99,235,0.12)" }]}>
-              <MaterialCommunityIcons name="lightning-bolt" size={20} color={(profile?.currentStreak ?? 0) >= 3 ? ORANGE : BLUE} />
-            </View>
+            <FlameIcon size={32} color={(profile?.currentStreak ?? 0) >= 3 ? ORANGE : BLUE} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.streakCount, {
                 color: (profile?.currentStreak ?? 0) >= 3 ? ORANGE : BLUE,
@@ -223,7 +222,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderRadius: 14, padding: 14,
     flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 16,
   },
-  streakIconWrap: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+
   streakCount: { fontSize: 13, fontWeight: "800", letterSpacing: 0.3 },
   streakSub: { fontSize: 11, fontWeight: "500", marginTop: 2 },
   streakBadge: {
