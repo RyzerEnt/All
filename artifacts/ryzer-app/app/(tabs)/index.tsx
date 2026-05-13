@@ -61,6 +61,42 @@ export default function HomeScreen() {
           )}
         </View>
 
+        {/* STREAK BANNER */}
+        {(profile?.currentStreak ?? 0) > 0 && (
+          <View style={[
+            styles.streakBanner,
+            {
+              backgroundColor: (profile?.currentStreak ?? 0) >= 3
+                ? "rgba(249,115,22,0.08)"
+                : "rgba(37,99,235,0.06)",
+              borderColor: (profile?.currentStreak ?? 0) >= 3
+                ? "rgba(249,115,22,0.3)"
+                : "rgba(37,99,235,0.2)",
+            },
+          ]}>
+            <Text style={styles.streakFire}>🔥</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.streakCount, {
+                color: (profile?.currentStreak ?? 0) >= 3 ? ORANGE : BLUE,
+              }]}>
+                {profile?.currentStreak} JOUR{(profile?.currentStreak ?? 0) > 1 ? "S" : ""} D'AFFILÉE
+              </Text>
+              {(profile?.currentStreak ?? 0) >= 3 ? (
+                <Text style={[styles.streakSub, { color: ORANGE }]}>✕1.5 actif — continue comme ça !</Text>
+              ) : (
+                <Text style={[styles.streakSub, { color: colors.mutedForeground }]}>
+                  Encore {3 - (profile?.currentStreak ?? 0)} jour{3 - (profile?.currentStreak ?? 0) > 1 ? "s" : ""} pour le bonus ✕1.5
+                </Text>
+              )}
+            </View>
+            {(profile?.currentStreak ?? 0) >= 3 && (
+              <View style={[styles.streakBadge, { backgroundColor: ORANGE }]}>
+                <Text style={styles.streakBadgeText}>✕1.5</Text>
+              </View>
+            )}
+          </View>
+        )}
+
         {/* POINTS BANNER */}
         <View style={[styles.pointsBanner, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={{ flex: 1 }}>
@@ -181,4 +217,15 @@ const styles = StyleSheet.create({
   },
   tipsTitle: { fontSize: 13, fontWeight: "700", marginBottom: 4 },
   tipsBody: { fontSize: 12, lineHeight: 18 },
+  streakBanner: {
+    borderWidth: 1, borderRadius: 14, padding: 14,
+    flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 16,
+  },
+  streakFire: { fontSize: 26 },
+  streakCount: { fontSize: 13, fontWeight: "800", letterSpacing: 0.3 },
+  streakSub: { fontSize: 11, fontWeight: "500", marginTop: 2 },
+  streakBadge: {
+    borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5,
+  },
+  streakBadgeText: { color: "#fff", fontSize: 13, fontWeight: "900" },
 });

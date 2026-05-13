@@ -173,6 +173,33 @@ export default function ProfileScreen() {
 
           <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>Athlète Ryzer</Text>
 
+          {/* STREAK */}
+          {(profile?.currentStreak ?? 0) > 0 && (
+            <View style={[
+              styles.streakRow,
+              {
+                backgroundColor: (profile?.currentStreak ?? 0) >= 3
+                  ? "rgba(249,115,22,0.08)"
+                  : "rgba(37,99,235,0.06)",
+                borderColor: (profile?.currentStreak ?? 0) >= 3
+                  ? "rgba(249,115,22,0.25)"
+                  : "rgba(37,99,235,0.15)",
+              },
+            ]}>
+              <Text style={styles.streakFireEmoji}>🔥</Text>
+              <Text style={[styles.streakLabel, {
+                color: (profile?.currentStreak ?? 0) >= 3 ? ORANGE : BLUE,
+              }]}>
+                {profile?.currentStreak} JOUR{(profile?.currentStreak ?? 0) > 1 ? "S" : ""} D'AFFILÉE
+              </Text>
+              {(profile?.currentStreak ?? 0) >= 3 && (
+                <View style={[styles.streakMultiplierBadge, { backgroundColor: ORANGE }]}>
+                  <Text style={styles.streakMultiplierText}>✕1.5</Text>
+                </View>
+              )}
+            </View>
+          )}
+
           {/* TOTAL POINTS */}
           <View style={[styles.pointsBanner, { backgroundColor: "rgba(37,99,235,0.06)", borderColor: "rgba(37,99,235,0.15)" }]}>
             <Text style={[styles.pointsValue, { color: colors.foreground }]}>
@@ -317,6 +344,15 @@ const styles = StyleSheet.create({
   statIconBubble: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", marginBottom: 4 },
   statValue: { fontSize: 20, fontWeight: "900", letterSpacing: -0.5 },
   statLabel: { fontSize: 9, fontWeight: "700", letterSpacing: 0.8 },
+  streakRow: {
+    flexDirection: "row", alignItems: "center", gap: 8,
+    borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8,
+    marginBottom: 16, alignSelf: "stretch",
+  },
+  streakFireEmoji: { fontSize: 18 },
+  streakLabel: { flex: 1, fontSize: 12, fontWeight: "800", letterSpacing: 0.3 },
+  streakMultiplierBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  streakMultiplierText: { color: "#fff", fontSize: 11, fontWeight: "900" },
   setupLink: {
     borderWidth: 1, borderRadius: 12, padding: 16,
     flexDirection: "row", alignItems: "center", gap: 12,

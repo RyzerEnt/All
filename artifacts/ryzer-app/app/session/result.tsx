@@ -36,6 +36,9 @@ export default function ResultScreen() {
   const { addSession } = useUser();
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [finalPoints, setFinalPoints] = useState<number | null>(null);
+  const [multiplierApplied, setMultiplierApplied] = useState(false);
+  const [currentStreak, setCurrentStreak] = useState(0);
 
   const ptNum = parseInt(points ?? "0");
   const durNum = parseInt(durationSeconds ?? "0");
@@ -44,12 +47,15 @@ export default function ResultScreen() {
     (async () => {
       setSaving(true);
       try {
-        await addSession({
+        const result = await addSession({
           sportName: sportName ?? "",
           sportIcon: sportIcon ?? "run",
           durationSeconds: durNum,
           points: ptNum,
         });
+        setFinalPoints(result.points);
+        setMultiplierApplied(result.multiplierApplied);
+        setCurrentStreak(result.currentStreak);
         setSaved(true);
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } catch {}
@@ -68,9 +74,41 @@ export default function ResultScreen() {
         <Text style={[styles.congrats, { color: colors.mutedForeground }]}>SESSION TERMINÉE</Text>
         <Text style={[styles.title, { color: colors.foreground }]}>
           BRAVO !{"\n"}
-          <Text style={{ color: BLUE }}>+{ptNum} </Text>
+          <Text style={{ color: BLUE }}>+{finalPoints ?? ptNum} </Text>
           <Text style={{ color: ORANGE }}>RYZER PTS</Text>
         </Text>
+
+        {/* Streak / multiplier banner */}
+        {saved && currentStreak > 0 && (
+          <View style={[
+            styles.streakBanner,
+            {
+              backgroundColor: multiplierApplied ? "rgba(249,115,22,0.08)" : "rgba(37,99,235,0.06)",
+              borderColor: multiplierApplied ? "rgba(249,115,22,0.3)" : "rgba(37,99,235,0.2)",
+            },
+          ]}>
+            <Text style={styles.streakFire}>🔥</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.streakText, { color: multiplierApplied ? ORANGE : BLUE }]}>
+                {currentStreak} JOUR{currentStreak > 1 ? "S" : ""} D'AFFILÉE
+              </Text>
+              {multiplierApplied ? (
+                <Text style={[styles.streakSub, { color: ORANGE }]}>
+                  Bonus ✕1.5 appliqué — +{(finalPoints ?? ptNum) - ptNum} pts bonus !
+                </Text>
+              ) : (
+                <Text style={[styles.streakSub, { color: colors.mutedForeground }]}>
+                  Encore {3 - currentStreak} jour{3 - currentStreak > 1 ? "s" : ""} pour le bonus ✕1.5
+                </Text>
+              )}
+            </View>
+            {multiplierApplied && (
+              <View style={[styles.multiplierBadge, { backgroundColor: ORANGE }]}>
+                <Text style={styles.multiplierText}>✕1.5</Text>
+              </View>
+            )}
+          </View>
+        )}
 
         {/* Stats card */}
         <View style={[styles.statsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -102,7 +140,16 @@ export default function ResultScreen() {
               <Feather name="zap" size={18} color={BLUE} />
             </View>
             <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>Ryzer Points</Text>
-            <Text style={[styles.statValue, { color: BLUE, fontWeight: "900" }]}>+{ptNum}</Text>
+            <View style={{ alignItems: "flex-end" }}>
+              <Text style={[styles.statValue, { color: BLUE, fontWeight: "900" }]}>
+                +{finalPoints ?? ptNum}
+              </Text>
+              {multiplierApplied && (
+                <Text style={{ fontSize: 10, color: ORANGE, fontWeight: "700" }}>
+                  ({ptNum} ✕1.5)
+                </Text>
+              )}
+            </View>
           </View>
         </View>
 
@@ -161,6 +208,15 @@ const styles = StyleSheet.create({
   saveStatus: { height: 24, justifyContent: "center", marginBottom: 8 },
   savedRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   savedText: { fontSize: 12, fontWeight: "600" },
+  streakBanner: {
+    borderWidth: 1, borderRadius: 12, padding: 12,
+    flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12, width: "100%",
+  },
+  streakFire: { fontSize: 22 },
+  streakText: { fontSize: 12, fontWeight: "800", letterSpacing: 0.3 },
+  streakSub: { fontSize: 10, fontWeight: "500", marginTop: 1 },
+  multiplierBadge: { borderRadius: 7, paddingHorizontal: 8, paddingVertical: 4 },
+  multiplierText: { color: "#fff", fontSize: 12, fontWeight: "900" },
   ctaGroup: { width: "100%", gap: 12 },
   mainBtn: {
     height: 58, borderRadius: 999, flexDirection: "row",

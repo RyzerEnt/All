@@ -7,6 +7,7 @@ export type UserProfile = {
   photoData: string | null;
   totalPoints: number;
   isSetupComplete: boolean;
+  currentStreak: number;
 };
 
 export type UserSession = {
@@ -31,7 +32,7 @@ type UserContextType = {
     sportIcon: string;
     durationSeconds: number;
     points: number;
-  }) => Promise<{ points: number }>;
+  }) => Promise<{ points: number; basePoints: number; multiplierApplied: boolean; currentStreak: number }>;
 };
 
 const UserContext = createContext<UserContextType | null>(null);
@@ -127,12 +128,23 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify(session),
       });
       if (res.ok) {
-        const saved: UserSession = await res.json();
+        const saved = await res.json();
         setProfile((p) =>
-          p ? { ...p, totalPoints: p.totalPoints + session.points } : p
+          p
+            ? {
+                ...p,
+                totalPoints: p.totalPoints + saved.points,
+                currentStreak: saved.currentStreak ?? p.currentStreak,
+              }
+            : p
         );
         setSessions((prev) => [saved, ...prev]);
-        return { points: session.points };
+        return {
+          points: saved.points,
+          basePoints: saved.basePoints ?? session.points,
+          multiplierApplied: saved.multiplierApplied ?? false,
+          currentStreak: saved.currentStreak ?? 0,
+        };
       }
       throw new Error("Failed to save session");
     },

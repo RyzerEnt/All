@@ -12,6 +12,55 @@ function requireAuth(req: any, res: any, next: any) {
   next();
 }
 
+async function computeStreak(clerkUserId: string): Promise<number> {
+  const { rows } = await pool.query<{ d: string }>(
+    `SELECT DISTINCT DATE(created_at AT TIME ZONE 'UTC') AS d
+     FROM ryzer_sessions
+     WHERE clerk_user_id = $1
+     ORDER BY d DESC`,
+    [clerkUserId]
+  );
+  if (rows.length === 0) return 0;
+
+  const todayUTC = new Date();
+  todayUTC.setUTCHours(0, 0, 0, 0);
+  const yesterdayUTC = new Date(todayUTC);
+  yesterdayUTC.setUTCDate(yesterdayUTC.getUTCDate() - 1);
+
+  const mostRecent = new Date(rows[0].d);
+  mostRecent.setUTCHours(0, 0, 0, 0);
+
+  if (mostRecent < yesterdayUTC) return 0;
+
+  let streak = 1;
+  let current = mostRecent;
+
+  for (let i = 1; i < rows.length; i++) {
+    const prev = new Date(rows[i].d);
+    prev.setUTCHours(0, 0, 0, 0);
+    const expected = new Date(current);
+    expected.setUTCDate(expected.getUTCDate() - 1);
+    if (prev.getTime() === expected.getTime()) {
+      streak++;
+      current = prev;
+    } else {
+      break;
+    }
+  }
+  return streak;
+}
+
+function formatUser(user: any, streak: number) {
+  return {
+    clerkUserId: user.clerk_user_id,
+    displayName: user.display_name,
+    photoData: user.photo_data,
+    totalPoints: user.total_points,
+    isSetupComplete: user.is_setup_complete,
+    currentStreak: streak,
+  };
+}
+
 // GET /api/me — get or create user profile
 router.get("/me", requireAuth, async (req: any, res) => {
   try {
@@ -26,14 +75,8 @@ router.get("/me", requireAuth, async (req: any, res) => {
         [clerkUserId]
       );
     }
-    const user = result.rows[0];
-    res.json({
-      clerkUserId: user.clerk_user_id,
-      displayName: user.display_name,
-      photoData: user.photo_data,
-      totalPoints: user.total_points,
-      isSetupComplete: user.is_setup_complete,
-    });
+    const streak = await computeStreak(clerkUserId);
+    res.json(formatUser(result.rows[0], streak));
   } catch (err) {
     req.log?.error(err);
     res.status(500).json({ error: "Internal server error" });
@@ -46,7 +89,6 @@ router.put("/me", requireAuth, async (req: any, res) => {
     const { clerkUserId } = req;
     const { displayName, isSetupComplete } = req.body;
 
-    // Upsert user
     await pool.query(
       `INSERT INTO ryzer_users (clerk_user_id, display_name, is_setup_complete, updated_at)
        VALUES ($1, $2, $3, NOW())
@@ -61,14 +103,8 @@ router.put("/me", requireAuth, async (req: any, res) => {
       "SELECT * FROM ryzer_users WHERE clerk_user_id = $1",
       [clerkUserId]
     );
-    const user = result.rows[0];
-    res.json({
-      clerkUserId: user.clerk_user_id,
-      displayName: user.display_name,
-      photoData: user.photo_data,
-      totalPoints: user.total_points,
-      isSetupComplete: user.is_setup_complete,
-    });
+    const streak = await computeStreak(clerkUserId);
+    res.json(formatUser(result.rows[0], streak));
   } catch (err) {
     req.log?.error(err);
     res.status(500).json({ error: "Internal server error" });
@@ -135,18 +171,38 @@ router.post("/sessions", requireAuth, async (req: any, res) => {
       [clerkUserId]
     );
 
+    // Compute streak from existing sessions (before adding today's new one)
+    const streakBefore = await computeStreak(clerkUserId);
+
+    // Check if today already has a session (so streak already counts today)
+    const todayCheck = await pool.query(
+      `SELECT 1 FROM ryzer_sessions
+       WHERE clerk_user_id = $1
+         AND DATE(created_at AT TIME ZONE 'UTC') = CURRENT_DATE AT TIME ZONE 'UTC'
+       LIMIT 1`,
+      [clerkUserId]
+    );
+    const todayAlreadyCounted = todayCheck.rows.length > 0;
+
+    // Streak after adding this session
+    const streakAfter = todayAlreadyCounted ? streakBefore : streakBefore + 1;
+
+    // Apply 1.5x multiplier if streak reaches 3+
+    const multiplierApplied = streakAfter >= 3;
+    const finalPoints = multiplierApplied ? Math.round(points * 1.5) : points;
+
     // Insert session
     const sessionResult = await pool.query(
       `INSERT INTO ryzer_sessions (clerk_user_id, sport_name, sport_icon, duration_seconds, points)
        VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [clerkUserId, sportName, sportIcon ?? "run", durationSeconds, points]
+      [clerkUserId, sportName, sportIcon ?? "run", durationSeconds, finalPoints]
     );
 
     // Update total points
     await pool.query(
       `UPDATE ryzer_users SET total_points = total_points + $1, updated_at = NOW()
        WHERE clerk_user_id = $2`,
-      [points, clerkUserId]
+      [finalPoints, clerkUserId]
     );
 
     const s = sessionResult.rows[0];
@@ -156,6 +212,9 @@ router.post("/sessions", requireAuth, async (req: any, res) => {
       sportIcon: s.sport_icon,
       durationSeconds: s.duration_seconds,
       points: s.points,
+      basePoints: points,
+      multiplierApplied,
+      currentStreak: streakAfter,
       createdAt: s.created_at,
     });
   } catch (err) {
