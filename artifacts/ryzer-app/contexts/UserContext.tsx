@@ -9,10 +9,21 @@ export type UserProfile = {
   isSetupComplete: boolean;
 };
 
+export type UserSession = {
+  id: number;
+  sportName: string;
+  sportIcon: string;
+  durationSeconds: number;
+  points: number;
+  createdAt: string;
+};
+
 type UserContextType = {
   profile: UserProfile | null;
+  sessions: UserSession[];
   isLoading: boolean;
   refreshProfile: () => Promise<void>;
+  refreshSessions: () => Promise<void>;
   updateProfile: (data: Partial<Pick<UserProfile, "displayName" | "isSetupComplete">>) => Promise<void>;
   uploadPhoto: (base64: string) => Promise<void>;
   addSession: (session: {
@@ -34,6 +45,7 @@ function getApiBase() {
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const { isSignedIn, getToken } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [sessions, setSessions] = useState<UserSession[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const authFetch = useCallback(
@@ -63,6 +75,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       }
     } catch {}
     setIsLoading(false);
+  }, [isSignedIn, authFetch]);
+
+  const refreshSessions = useCallback(async () => {
+    if (!isSignedIn) return;
+    try {
+      const res = await authFetch("/sessions");
+      if (res.ok) {
+        const data = await res.json();
+        setSessions(data);
+      }
+    } catch {}
   }, [isSignedIn, authFetch]);
 
   const updateProfile = useCallback(
@@ -104,9 +127,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify(session),
       });
       if (res.ok) {
+        const saved: UserSession = await res.json();
         setProfile((p) =>
           p ? { ...p, totalPoints: p.totalPoints + session.points } : p
         );
+        setSessions((prev) => [saved, ...prev]);
         return { points: session.points };
       }
       throw new Error("Failed to save session");
@@ -117,14 +142,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isSignedIn) {
       refreshProfile();
+      refreshSessions();
     } else {
       setProfile(null);
+      setSessions([]);
     }
   }, [isSignedIn]);
 
   return (
     <UserContext.Provider
-      value={{ profile, isLoading, refreshProfile, updateProfile, uploadPhoto, addSession }}
+      value={{ profile, sessions, isLoading, refreshProfile, refreshSessions, updateProfile, uploadPhoto, addSession }}
     >
       {children}
     </UserContext.Provider>

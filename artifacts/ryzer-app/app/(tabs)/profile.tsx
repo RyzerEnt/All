@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TextInput,
   Pressable, Platform, Image, ActivityIndicator,
@@ -8,7 +8,7 @@ import { useAuth } from "@clerk/expo";
 import * as ImagePicker from "expo-image-picker";
 import * as Haptics from "expo-haptics";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useColors } from "@/hooks/useColors";
 import { useUser } from "@/contexts/UserContext";
 
@@ -31,11 +31,18 @@ export default function ProfileScreen() {
   const bottomPad = isWeb ? 34 : insets.bottom;
 
   const { signOut } = useAuth();
-  const { profile, isLoading, updateProfile, uploadPhoto, refreshProfile } = useUser();
+  const { profile, sessions, isLoading, updateProfile, uploadPhoto, refreshProfile, refreshSessions } = useUser();
 
   const [editingName, setEditingName] = useState(false);
   const [draftName, setDraftName] = useState("");
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshProfile();
+      refreshSessions();
+    }, [refreshProfile, refreshSessions])
+  );
 
   const initials = (profile?.displayName ?? "R")
     .split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("");
@@ -86,6 +93,16 @@ export default function ProfileScreen() {
   }
 
   const totalPts = profile?.totalPoints ?? 0;
+  const sessionCount = sessions.length;
+  const totalDurationSeconds = sessions.reduce((acc, s) => acc + s.durationSeconds, 0);
+
+  function formatTotalDuration(seconds: number): string {
+    if (seconds === 0) return "–";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) return `${h}h${m > 0 ? ` ${m}m` : ""}`;
+    return `${m}min`;
+  }
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
@@ -184,9 +201,9 @@ export default function ProfileScreen() {
         <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>STATISTIQUES</Text>
         <View style={styles.statsRow}>
           {[
-            { label: "SESSIONS",   value: "–" },
-            { label: "DURÉE TOT.", value: "–" },
-            { label: "MEILLEURE",  value: totalPts > 0 ? String(totalPts) : "–" },
+            { label: "SESSIONS",   value: sessionCount > 0 ? String(sessionCount) : "–" },
+            { label: "DURÉE TOT.", value: formatTotalDuration(totalDurationSeconds) },
+            { label: "RYZER PTS",  value: totalPts > 0 ? totalPts.toLocaleString("fr-FR") : "–" },
           ].map((s, i) => (
             <View key={s.label} style={[styles.statCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
               <View style={[styles.statIconBubble, { backgroundColor: i % 2 === 0 ? "rgba(37,99,235,0.10)" : "rgba(249,115,22,0.10)" }]}>
