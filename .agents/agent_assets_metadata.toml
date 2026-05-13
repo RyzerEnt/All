@@ -41,3 +41,9 @@ id = "Wqe0T6r9IxxS-9eaa6Bf1"
 uri = "file://mobile.md"
 type = "text"
 title = "mobile.md — Guide bugs Expo / Replit"
+
+[[outputs]]
+id = "qFaYop15fC_tBiYxSDd_X"
+uri = "file://launch.md"
+type = "text"
+title = "Guide déploiement Ryzer sur Raspberry Pi"
