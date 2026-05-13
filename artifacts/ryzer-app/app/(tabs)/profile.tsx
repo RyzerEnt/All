@@ -215,6 +215,43 @@ export default function ProfileScreen() {
           ))}
         </View>
 
+        {/* DERNIÈRES SESSIONS */}
+        <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>DERNIÈRES SESSIONS</Text>
+        {sessions.length === 0 ? (
+          <View style={[styles.emptyCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <MaterialCommunityIcons name="lightning-bolt-outline" size={28} color={colors.mutedForeground} />
+            <Text style={[styles.emptyText, { color: colors.mutedForeground }]}>Aucune session pour le moment</Text>
+          </View>
+        ) : (
+          <View style={[styles.sessionsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            {sessions.slice(0, 5).map((s, i) => {
+              const date = new Date(s.createdAt);
+              const dateStr = date.toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+              const h = Math.floor(s.durationSeconds / 3600);
+              const m = Math.floor((s.durationSeconds % 3600) / 60);
+              const sec = s.durationSeconds % 60;
+              const durStr = h > 0 ? `${h}h${m > 0 ? ` ${m}m` : ""}` : m > 0 ? `${m}min ${sec}s` : `${sec}s`;
+              return (
+                <View key={s.id}>
+                  {i > 0 && <View style={[styles.sessionDivider, { backgroundColor: colors.border }]} />}
+                  <View style={styles.sessionRow}>
+                    <View style={[styles.sessionIconWrap, { backgroundColor: "rgba(37,99,235,0.10)" }]}>
+                      <MaterialCommunityIcons name={(s.sportIcon ?? "run") as MCIcon} size={18} color={BLUE} />
+                    </View>
+                    <View style={styles.sessionInfo}>
+                      <Text style={[styles.sessionSport, { color: colors.foreground }]}>{s.sportName}</Text>
+                      <Text style={[styles.sessionMeta, { color: colors.mutedForeground }]}>{durStr} · {dateStr}</Text>
+                    </View>
+                    <View style={[styles.sessionPtsBadge, { backgroundColor: "rgba(37,99,235,0.08)", borderColor: "rgba(37,99,235,0.18)" }]}>
+                      <Text style={[styles.sessionPts, { color: BLUE }]}>+{s.points}</Text>
+                    </View>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
         {/* PROFILE SETUP LINK */}
         <Pressable
           style={[styles.setupLink, { backgroundColor: colors.card, borderColor: colors.border }]}
@@ -285,4 +322,29 @@ const styles = StyleSheet.create({
     flexDirection: "row", alignItems: "center", gap: 12,
   },
   setupLinkText: { flex: 1, fontSize: 14, fontWeight: "600" },
+  emptyCard: {
+    borderWidth: 1, borderRadius: 14, padding: 24,
+    alignItems: "center", gap: 8, marginBottom: 20,
+  },
+  emptyText: { fontSize: 13, fontWeight: "500" },
+  sessionsCard: {
+    borderWidth: 1, borderRadius: 16, overflow: "hidden", marginBottom: 20,
+  },
+  sessionRow: {
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 16, paddingVertical: 13, gap: 12,
+  },
+  sessionDivider: { height: 1, marginHorizontal: 16 },
+  sessionIconWrap: {
+    width: 38, height: 38, borderRadius: 10,
+    alignItems: "center", justifyContent: "center",
+  },
+  sessionInfo: { flex: 1, gap: 2 },
+  sessionSport: { fontSize: 14, fontWeight: "700" },
+  sessionMeta: { fontSize: 11, fontWeight: "500" },
+  sessionPtsBadge: {
+    borderWidth: 1, borderRadius: 999,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  sessionPts: { fontSize: 12, fontWeight: "800" },
 });
