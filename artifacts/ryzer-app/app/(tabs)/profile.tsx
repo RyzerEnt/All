@@ -186,7 +186,9 @@ export default function ProfileScreen() {
                   : "rgba(37,99,235,0.15)",
               },
             ]}>
-              <Text style={styles.streakFireEmoji}>🔥</Text>
+              <View style={[styles.streakIconWrap, { backgroundColor: (profile?.currentStreak ?? 0) >= 3 ? "rgba(249,115,22,0.15)" : "rgba(37,99,235,0.12)" }]}>
+                <MaterialCommunityIcons name="lightning-bolt" size={14} color={(profile?.currentStreak ?? 0) >= 3 ? ORANGE : BLUE} />
+              </View>
               <Text style={[styles.streakLabel, {
                 color: (profile?.currentStreak ?? 0) >= 3 ? ORANGE : BLUE,
               }]}>
@@ -349,7 +351,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8,
     marginBottom: 16, alignSelf: "stretch",
   },
-  streakFireEmoji: { fontSize: 18 },
+  streakIconWrap: { width: 26, height: 26, borderRadius: 7, alignItems: "center", justifyContent: "center" },
   streakLabel: { flex: 1, fontSize: 12, fontWeight: "800", letterSpacing: 0.3 },
   streakMultiplierBadge: { borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   streakMultiplierText: { color: "#fff", fontSize: 11, fontWeight: "900" },
