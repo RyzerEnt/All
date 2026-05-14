@@ -13,9 +13,55 @@ const defaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = defaultIcon;
 
+const LAYERS = [
+  {
+    id: "topo",
+    label: "Topographique",
+    emoji: "⛰️",
+    url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://opentopomap.org">OpenTopoMap</a> &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+    maxZoom: 17,
+  },
+  {
+    id: "relief",
+    label: "Relief ombré",
+    emoji: "🏔️",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
+    attribution: '&copy; <a href="https://www.esri.com">Esri</a>, USGS, NOAA',
+    maxZoom: 13,
+  },
+  {
+    id: "terrain",
+    label: "Terrain ESRI",
+    emoji: "🗺️",
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}",
+    attribution: '&copy; <a href="https://www.esri.com">Esri</a>, USGS, NGA, NASA',
+    maxZoom: 13,
+  },
+  {
+    id: "standard",
+    label: "Standard",
+    emoji: "🗾",
+    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+  },
+] as const;
+
+type LayerId = (typeof LAYERS)[number]["id"];
+
 function RecenterMap({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
-  useEffect(() => { map.setView([lat, lng], 14); }, [lat, lng, map]);
+  useEffect(() => { map.setView([lat, lng], 13); }, [lat, lng, map]);
+  return null;
+}
+
+function ChangeLayer({ url, attribution, maxZoom }: { url: string; attribution: string; maxZoom: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.eachLayer((l) => { if ((l as any)._url) map.removeLayer(l); });
+    L.tileLayer(url, { attribution, maxZoom }).addTo(map);
+  }, [url, attribution, maxZoom, map]);
   return null;
 }
 
@@ -23,10 +69,14 @@ export default function MapPage() {
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activeLayer, setActiveLayer] = useState<LayerId>("topo");
+  const [centered, setCentered] = useState(false);
+
+  const layer = LAYERS.find((l) => l.id === activeLayer)!;
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      setError("Géolocalisation non supportée par ce navigateur.");
+      setError("Géolocalisation non supportée — affichage des Alpes par défaut.");
       setLoading(false);
       return;
     }
@@ -36,22 +86,22 @@ export default function MapPage() {
         setLoading(false);
       },
       () => {
-        setPos({ lat: 48.8566, lng: 2.3522 });
-        setError("Position non disponible — affichage de Paris par défaut.");
+        setPos({ lat: 45.8326, lng: 6.8652 });
+        setError("Position non disponible — affichage des Alpes par défaut.");
         setLoading(false);
       },
       { timeout: 8000 }
     );
   }, []);
 
-  const defaultCenter: [number, number] = pos ? [pos.lat, pos.lng] : [48.8566, 2.3522];
+  const defaultCenter: [number, number] = pos ? [pos.lat, pos.lng] : [45.8326, 6.8652];
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", height: "calc(100vh - 61px - 57px)" }}>
       {error && (
         <div style={{
           background: "rgba(249,115,22,0.08)", borderBottom: "1px solid rgba(249,115,22,0.2)",
-          padding: "0.6rem 1.25rem", fontSize: "0.75rem", color: "#c2410c", fontWeight: 600,
+          padding: "0.55rem 1.25rem", fontSize: "0.72rem", color: "#c2410c", fontWeight: 600,
           display: "flex", alignItems: "center", gap: "0.5rem",
         }}>
           <span>⚠</span> {error}
@@ -68,9 +118,7 @@ export default function MapPage() {
             borderTop: "3px solid #2563eb", borderRadius: "50%",
             animation: "spin 0.8s linear infinite",
           }} />
-          <span style={{ fontSize: "0.8rem", color: "#64748b", fontWeight: 600 }}>
-            Localisation en cours…
-          </span>
+          <span style={{ fontSize: "0.8rem", color: "#64748b", fontWeight: 600 }}>Localisation en cours…</span>
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
       )}
@@ -79,41 +127,78 @@ export default function MapPage() {
         <div style={{ flex: 1, position: "relative" }}>
           <MapContainer
             center={defaultCenter}
-            zoom={13}
+            zoom={12}
             style={{ width: "100%", height: "100%" }}
             zoomControl={true}
           >
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              key={activeLayer}
+              url={layer.url}
+              attribution={layer.attribution}
+              maxZoom={layer.maxZoom}
             />
-            {pos && (
+            {pos && !centered && (
               <>
                 <RecenterMap lat={pos.lat} lng={pos.lng} />
-                <Marker position={[pos.lat, pos.lng]}>
-                  <Popup>
-                    <div style={{ fontFamily: "system-ui", minWidth: 140 }}>
-                      <strong style={{ color: "#2563eb", fontSize: "0.85rem" }}>📍 Votre position</strong>
-                      <br />
-                      <span style={{ fontSize: "0.72rem", color: "#64748b" }}>
-                        {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
-                      </span>
-                    </div>
-                  </Popup>
-                </Marker>
               </>
+            )}
+            {pos && (
+              <Marker position={[pos.lat, pos.lng]}>
+                <Popup>
+                  <div style={{ fontFamily: "system-ui", minWidth: 150 }}>
+                    <strong style={{ color: "#2563eb", fontSize: "0.85rem" }}>📍 Votre position</strong>
+                    <br />
+                    <span style={{ fontSize: "0.72rem", color: "#64748b" }}>
+                      {pos.lat.toFixed(5)}, {pos.lng.toFixed(5)}
+                    </span>
+                  </div>
+                </Popup>
+              </Marker>
             )}
           </MapContainer>
 
+          {/* Layer switcher */}
+          <div style={{
+            position: "absolute", top: 12, right: 12, zIndex: 1000,
+            display: "flex", flexDirection: "column", gap: 6,
+          }}>
+            {LAYERS.map((l) => (
+              <button
+                key={l.id}
+                onClick={() => setActiveLayer(l.id)}
+                style={{
+                  display: "flex", alignItems: "center", gap: "0.5rem",
+                  padding: "0.45rem 0.85rem",
+                  borderRadius: 10,
+                  border: activeLayer === l.id ? "1.5px solid #2563eb" : "1.5px solid rgba(15,23,42,0.1)",
+                  background: activeLayer === l.id ? "#2563eb" : "rgba(255,255,255,0.95)",
+                  color: activeLayer === l.id ? "#fff" : "#334155",
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  backdropFilter: "blur(12px)",
+                  boxShadow: activeLayer === l.id ? "0 2px 12px rgba(37,99,235,0.3)" : "0 1px 6px rgba(0,0,0,0.1)",
+                  letterSpacing: "0.02em",
+                  transition: "all 0.15s",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <span style={{ fontSize: "0.85rem" }}>{l.emoji}</span>
+                {l.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Bottom badge */}
           <div style={{
             position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)",
             zIndex: 1000, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(12px)",
-            borderRadius: 12, padding: "0.5rem 1.25rem", boxShadow: "0 2px 16px rgba(0,0,0,0.12)",
+            borderRadius: 12, padding: "0.45rem 1.1rem", boxShadow: "0 2px 16px rgba(0,0,0,0.12)",
             border: "1px solid rgba(37,99,235,0.15)", display: "flex", alignItems: "center", gap: "0.5rem",
           }}>
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#2563eb", display: "inline-block", boxShadow: "0 0 6px #2563eb" }} />
-            <span style={{ fontSize: "0.72rem", fontWeight: 700, letterSpacing: "0.06em", color: "#1e40af", textTransform: "uppercase" }}>
-              OpenStreetMap · Ryzer Map
+            <span style={{ fontSize: "0.9rem" }}>{layer.emoji}</span>
+            <span style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.06em", color: "#1e40af", textTransform: "uppercase" }}>
+              {layer.label} · Ryzer Map
             </span>
           </div>
         </div>
