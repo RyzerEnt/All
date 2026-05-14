@@ -110,6 +110,15 @@ async function fetchElevation(lat: number, lng: number): Promise<number | null> 
 }
 
 const DEFAULT_FILTERS = { hue: 0, saturate: 100, brightness: 100, contrast: 100 };
+const FLASHY_GREEN   = { hue: 95, saturate: 230, brightness: 82, contrast: 115 };
+const LS_KEY = "ryzer-map-filters";
+
+function loadFilters() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    return raw ? { ...DEFAULT_FILTERS, ...JSON.parse(raw) } : FLASHY_GREEN;
+  } catch { return FLASHY_GREEN; }
+}
 
 export default function MapPage() {
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
@@ -119,8 +128,12 @@ export default function MapPage() {
   const [centered, setCentered] = useState(false);
   const [elevation, setElevation] = useState<number | null>(null);
   const [elevationLoading, setElevationLoading] = useState(false);
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [filters, setFilters] = useState(loadFilters);
   const [showFilters, setShowFilters] = useState(false);
+
+  useEffect(() => {
+    try { localStorage.setItem(LS_KEY, JSON.stringify(filters)); } catch {}
+  }, [filters]);
 
   const layer = LAYERS.find((l) => l.id === activeLayer)!;
   const filterCSS = `hue-rotate(${filters.hue}deg) saturate(${filters.saturate}%) brightness(${filters.brightness}%) contrast(${filters.contrast}%)`;
@@ -289,12 +302,20 @@ export default function MapPage() {
                 <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#ea580c", letterSpacing: "0.05em", textTransform: "uppercase" }}>
                   🎨 Couleurs Voyager
                 </span>
-                <button
-                  onClick={() => setFilters(DEFAULT_FILTERS)}
-                  style={{ fontSize: "0.65rem", fontWeight: 700, color: "#94a3b8", background: "none", border: "none", cursor: "pointer", padding: 0 }}
-                >
-                  Réinitialiser
-                </button>
+                <div style={{ display: "flex", gap: "0.4rem" }}>
+                  <button
+                    onClick={() => setFilters(FLASHY_GREEN)}
+                    style={{ fontSize: "0.62rem", fontWeight: 700, color: "#16a34a", background: "rgba(22,163,74,0.1)", border: "1px solid rgba(22,163,74,0.25)", borderRadius: 6, cursor: "pointer", padding: "0.15rem 0.45rem" }}
+                  >
+                    🟢 Vert
+                  </button>
+                  <button
+                    onClick={() => setFilters(DEFAULT_FILTERS)}
+                    style={{ fontSize: "0.62rem", fontWeight: 700, color: "#94a3b8", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                  >
+                    Défaut
+                  </button>
+                </div>
               </div>
 
               {([
