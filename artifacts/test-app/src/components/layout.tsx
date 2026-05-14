@@ -50,6 +50,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 Calculateur
               </span>
             </Link>
+            <Link href="/map">
+              <span style={{
+                padding: "0.5rem 1rem",
+                borderRadius: 999,
+                fontSize: "0.8rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                textDecoration: "none",
+                transition: "all 0.2s",
+                ...(location === "/map"
+                  ? { background: "#2563eb", color: "#fff", border: "1px solid #2563eb" }
+                  : { background: "transparent", color: "rgba(15,23,42,0.5)", border: "1px solid transparent" }),
+              }}>
+                Map
+              </span>
+            </Link>
             <Link href="/admin">
               <span style={{
                 padding: "0.5rem 1rem",
