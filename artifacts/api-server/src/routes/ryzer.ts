@@ -189,7 +189,7 @@ router.post("/sessions", requireAuth, async (req: any, res) => {
 
     // Apply 1.5x multiplier if streak reaches 3+
     const multiplierApplied = streakAfter >= 3;
-    const finalPoints = multiplierApplied ? Math.round(points * 1.5) : points;
+    const finalPoints = multiplierApplied ? Math.round(points * 1.5 * 10) / 10 : points;
 
     // Insert session
     const sessionResult = await pool.query(

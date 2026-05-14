@@ -41,7 +41,7 @@ export default function ResultScreen() {
   const [multiplierApplied, setMultiplierApplied] = useState(false);
   const [currentStreak, setCurrentStreak] = useState(0);
 
-  const ptNum = parseInt(points ?? "0");
+  const ptNum = parseFloat(points ?? "0");
   const durNum = parseInt(durationSeconds ?? "0");
 
   useEffect(() => {

@@ -74,7 +74,7 @@ export default function TimerScreen() {
         sportIcon,
         met,
         durationSeconds: elapsed,
-        points: Math.round(points),
+        points: Math.round(points * 10) / 10,
       },
     });
   };
