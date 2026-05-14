@@ -103,26 +103,6 @@ router = "expo-domain"
 PORT = "22479"
 BASE_PATH = "/ryzer-app/"
 
-[[workflows.workflow]]
-name = "artifacts/test-app: web"
-author = "agent"
-mode = "sequential"
-
-[workflows.workflow.metadata]
-outputType = "webview"
-artifactId = "artifacts/sport-calc"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "pnpm --filter @workspace/sport-calc run dev"
-cwd = "./artifacts/test-app"
-waitForPort = 18304
-router = "path"
-
-[workflows.workflow.tasks.env]
-PORT = "18304"
-BASE_PATH = "/sport-calc/"
-
 [agent]
 stack = "BEST_EFFORT_FALLBACK"
 expertMode = true
