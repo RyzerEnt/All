@@ -109,6 +109,8 @@ async function fetchElevation(lat: number, lng: number): Promise<number | null> 
   }
 }
 
+const DEFAULT_FILTERS = { hue: 0, saturate: 100, brightness: 100, contrast: 100 };
+
 export default function MapPage() {
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -117,8 +119,12 @@ export default function MapPage() {
   const [centered, setCentered] = useState(false);
   const [elevation, setElevation] = useState<number | null>(null);
   const [elevationLoading, setElevationLoading] = useState(false);
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+  const [showFilters, setShowFilters] = useState(false);
 
   const layer = LAYERS.find((l) => l.id === activeLayer)!;
+  const filterCSS = `hue-rotate(${filters.hue}deg) saturate(${filters.saturate}%) brightness(${filters.brightness}%) contrast(${filters.contrast}%)`;
+  const isVoyager = activeLayer === "voyager";
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -186,6 +192,9 @@ export default function MapPage() {
 
       {!loading && (
         <div style={{ flex: 1, position: "relative" }}>
+          {isVoyager && (
+            <style>{`.ryzer-voyager { filter: ${filterCSS}; }`}</style>
+          )}
           <MapContainer
             center={defaultCenter}
             zoom={12}
@@ -197,6 +206,7 @@ export default function MapPage() {
               url={layer.url}
               attribution={layer.attribution}
               maxZoom={layer.maxZoom}
+              className={isVoyager ? "ryzer-voyager" : undefined}
             />
             {pos && !centered && (
               <>
@@ -229,26 +239,87 @@ export default function MapPage() {
                 onClick={() => setActiveLayer(l.id)}
                 style={{
                   display: "flex", alignItems: "center", gap: "0.5rem",
-                  padding: "0.45rem 0.85rem",
-                  borderRadius: 10,
+                  padding: "0.45rem 0.85rem", borderRadius: 10,
                   border: activeLayer === l.id ? "1.5px solid #2563eb" : "1.5px solid rgba(15,23,42,0.1)",
                   background: activeLayer === l.id ? "#2563eb" : "rgba(255,255,255,0.95)",
                   color: activeLayer === l.id ? "#fff" : "#334155",
-                  fontSize: "0.72rem",
-                  fontWeight: 700,
-                  cursor: "pointer",
+                  fontSize: "0.72rem", fontWeight: 700, cursor: "pointer",
                   backdropFilter: "blur(12px)",
                   boxShadow: activeLayer === l.id ? "0 2px 12px rgba(37,99,235,0.3)" : "0 1px 6px rgba(0,0,0,0.1)",
-                  letterSpacing: "0.02em",
-                  transition: "all 0.15s",
-                  whiteSpace: "nowrap",
+                  letterSpacing: "0.02em", transition: "all 0.15s", whiteSpace: "nowrap",
                 }}
               >
                 <span style={{ fontSize: "0.85rem" }}>{l.emoji}</span>
                 {l.label}
               </button>
             ))}
+
+            {/* Couleurs button — Voyager only */}
+            {isVoyager && (
+              <button
+                onClick={() => setShowFilters((v) => !v)}
+                style={{
+                  display: "flex", alignItems: "center", gap: "0.5rem",
+                  padding: "0.45rem 0.85rem", borderRadius: 10, marginTop: 4,
+                  border: showFilters ? "1.5px solid #f97316" : "1.5px solid rgba(249,115,22,0.3)",
+                  background: showFilters ? "#f97316" : "rgba(255,255,255,0.95)",
+                  color: showFilters ? "#fff" : "#ea580c",
+                  fontSize: "0.72rem", fontWeight: 700, cursor: "pointer",
+                  backdropFilter: "blur(12px)",
+                  boxShadow: showFilters ? "0 2px 12px rgba(249,115,22,0.35)" : "0 1px 6px rgba(0,0,0,0.1)",
+                  letterSpacing: "0.02em", transition: "all 0.15s", whiteSpace: "nowrap",
+                }}
+              >
+                <span style={{ fontSize: "0.85rem" }}>🎨</span>
+                Couleurs
+              </button>
+            )}
           </div>
+
+          {/* Filter panel */}
+          {isVoyager && showFilters && (
+            <div style={{
+              position: "absolute", top: 12, left: 12, zIndex: 1000,
+              background: "rgba(255,255,255,0.97)", backdropFilter: "blur(16px)",
+              borderRadius: 16, padding: "1rem 1.1rem", boxShadow: "0 4px 24px rgba(0,0,0,0.14)",
+              border: "1.5px solid rgba(249,115,22,0.2)", minWidth: 220,
+              display: "flex", flexDirection: "column", gap: "0.85rem",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontSize: "0.75rem", fontWeight: 800, color: "#ea580c", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                  🎨 Couleurs Voyager
+                </span>
+                <button
+                  onClick={() => setFilters(DEFAULT_FILTERS)}
+                  style={{ fontSize: "0.65rem", fontWeight: 700, color: "#94a3b8", background: "none", border: "none", cursor: "pointer", padding: 0 }}
+                >
+                  Réinitialiser
+                </button>
+              </div>
+
+              {([
+                { key: "hue",        label: "Teinte",      min: 0,   max: 360, unit: "°",  color: "#8b5cf6" },
+                { key: "saturate",   label: "Saturation",  min: 0,   max: 300, unit: "%",  color: "#f97316" },
+                { key: "brightness", label: "Luminosité",  min: 50,  max: 150, unit: "%",  color: "#eab308" },
+                { key: "contrast",   label: "Contraste",   min: 50,  max: 150, unit: "%",  color: "#2563eb" },
+              ] as const).map(({ key, label, min, max, unit, color }) => (
+                <div key={key} style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#475569" }}>{label}</span>
+                    <span style={{ fontSize: "0.68rem", fontWeight: 800, color }}>{filters[key]}{unit}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={min}
+                    max={max}
+                    value={filters[key]}
+                    onChange={(e) => setFilters((f) => ({ ...f, [key]: Number(e.target.value) }))}
+                    style={{ width: "100%", accentColor: color, height: 4, cursor: "pointer" }}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* Bottom info bar */}
           <div style={{
