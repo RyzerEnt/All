@@ -58,14 +58,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     async (path: string, options: RequestInit = {}) => {
       const token = await getTokenRef.current();
       const base = getApiBase();
-      return fetch(`${base}/api${path}`, {
-        ...options,
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          ...(options.headers ?? {}),
-        },
-      });
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 8000);
+      try {
+        return await fetch(`${base}/api${path}`, {
+          ...options,
+          signal: controller.signal,
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(options.headers ?? {}),
+          },
+        });
+      } finally {
+        clearTimeout(timer);
+      }
     },
     [] // stable — getToken accessed via ref
   );
