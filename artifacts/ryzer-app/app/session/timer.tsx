@@ -11,10 +11,8 @@ type MCIcon = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 
 const BLUE = "#2563eb";
 const ORANGE = "#f97316";
-const WEIGHT_KG = 75;
-
-function computePoints(met: number, seconds: number): number {
-  return Math.round(met * WEIGHT_KG * (seconds / 3600) / 100 * 10) / 10;
+function computePoints(_met: number, seconds: number): number {
+  return Math.round((seconds / 300) * 10) / 10;
 }
 
 function formatTime(seconds: number): string {
