@@ -21,9 +21,10 @@ export default function ProfileSetupScreen() {
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
 
-  const { updateProfile, uploadPhoto } = useUser();
+  const { profile, updateProfile, uploadPhoto } = useUser();
+  const isEditMode = profile?.isSetupComplete === true;
 
-  const [name, setName] = useState("");
+  const [name, setName] = useState(profile?.displayName ?? "");
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -70,11 +71,21 @@ export default function ProfileSetupScreen() {
       if (photoBase64) await uploadPhoto(photoBase64);
       await updateProfile({ displayName: name.trim(), isSetupComplete: true });
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace("/(tabs)");
+      if (isEditMode) {
+        router.back();
+      } else {
+        router.replace("/(tabs)");
+      }
     } catch {
       setIsSaving(false);
     }
   };
+
+  const currentPhoto = photoBase64
+    ? `data:image/jpeg;base64,${photoBase64}`
+    : profile?.photoData
+      ? `data:image/jpeg;base64,${profile.photoData}`
+      : null;
 
   const initials = name.trim().split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("");
 
@@ -85,28 +96,42 @@ export default function ProfileSetupScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {/* Back button (edit mode only) */}
+        {isEditMode && (
+          <Pressable
+            onPress={() => router.back()}
+            style={[styles.backBtn, { backgroundColor: colors.card, borderColor: colors.border }]}
+          >
+            <Feather name="arrow-left" size={18} color={colors.foreground} />
+          </Pressable>
+        )}
+
         {/* Badge */}
-        <View style={[styles.badge, { backgroundColor: "rgba(249,115,22,0.1)", borderColor: "rgba(249,115,22,0.3)" }]}>
-          <View style={[styles.dot, { backgroundColor: ORANGE }]} />
-          <Text style={[styles.badgeText, { color: ORANGE }]}>BIENVENUE SUR RYZER</Text>
-        </View>
+        {!isEditMode && (
+          <View style={[styles.badge, { backgroundColor: "rgba(249,115,22,0.1)", borderColor: "rgba(249,115,22,0.3)" }]}>
+            <View style={[styles.dot, { backgroundColor: ORANGE }]} />
+            <Text style={[styles.badgeText, { color: ORANGE }]}>BIENVENUE SUR RYZER</Text>
+          </View>
+        )}
 
         <Text style={[styles.title, { color: colors.foreground }]}>
-          CONFIGURE{"\n"}<Text style={{ color: BLUE }}>TON </Text>
-          <Text style={{ color: ORANGE }}>PROFIL</Text>
+          {isEditMode ? (
+            <>MODIFIER{"\n"}<Text style={{ color: BLUE }}>MON </Text><Text style={{ color: ORANGE }}>PROFIL</Text></>
+          ) : (
+            <>CONFIGURE{"\n"}<Text style={{ color: BLUE }}>TON </Text><Text style={{ color: ORANGE }}>PROFIL</Text></>
+          )}
         </Text>
         <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-          Quelques infos pour personnaliser ton expérience
+          {isEditMode
+            ? "Modifie ta photo et ton nom d'affichage"
+            : "Quelques infos pour personnaliser ton expérience"}
         </Text>
 
         {/* Avatar */}
         <View style={styles.avatarSection}>
           <Pressable onPress={pickPhoto} style={styles.avatarPressable}>
-            {photoBase64 ? (
-              <Image
-                source={{ uri: `data:image/jpeg;base64,${photoBase64}` }}
-                style={styles.avatarImg}
-              />
+            {currentPhoto ? (
+              <Image source={{ uri: currentPhoto }} style={styles.avatarImg} />
             ) : (
               <View style={[styles.avatarPlaceholder, { backgroundColor: BLUE }]}>
                 {initials ? (
@@ -153,15 +178,20 @@ export default function ProfileSetupScreen() {
           onPress={handleSave}
           disabled={!name.trim() || isSaving}
         >
-          {isSaving
-            ? <ActivityIndicator color="#fff" />
-            : <><Feather name="zap" size={17} color="#fff" /><Text style={styles.btnText}>C'EST PARTI !</Text></>
-          }
+          {isSaving ? (
+            <ActivityIndicator color="#fff" />
+          ) : isEditMode ? (
+            <><Feather name="check" size={17} color="#fff" /><Text style={styles.btnText}>SAUVEGARDER</Text></>
+          ) : (
+            <><Feather name="zap" size={17} color="#fff" /><Text style={styles.btnText}>C'EST PARTI !</Text></>
+          )}
         </Pressable>
 
-        <Pressable onPress={() => router.replace("/(tabs)")} style={styles.skip}>
-          <Text style={[styles.skipText, { color: colors.mutedForeground }]}>Passer cette étape</Text>
-        </Pressable>
+        {!isEditMode && (
+          <Pressable onPress={() => router.replace("/(tabs)")} style={styles.skip}>
+            <Text style={[styles.skipText, { color: colors.mutedForeground }]}>Passer cette étape</Text>
+          </Pressable>
+        )}
       </ScrollView>
     </View>
   );
@@ -169,6 +199,10 @@ export default function ProfileSetupScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  backBtn: {
+    width: 40, height: 40, borderRadius: 12, borderWidth: 1,
+    alignItems: "center", justifyContent: "center", marginBottom: 24,
+  },
   badge: {
     flexDirection: "row", alignItems: "center", alignSelf: "flex-start",
     borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5,
