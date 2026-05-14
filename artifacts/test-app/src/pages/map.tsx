@@ -15,6 +15,30 @@ L.Marker.prototype.options.icon = defaultIcon;
 
 const LAYERS = [
   {
+    id: "voyager",
+    label: "Voyager",
+    emoji: "✨",
+    url: "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com">CARTO</a>',
+    maxZoom: 19,
+  },
+  {
+    id: "light",
+    label: "Clair",
+    emoji: "☀️",
+    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com">CARTO</a>',
+    maxZoom: 19,
+  },
+  {
+    id: "dark",
+    label: "Sombre",
+    emoji: "🌙",
+    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com">CARTO</a>',
+    maxZoom: 19,
+  },
+  {
     id: "topo",
     label: "Topographique",
     emoji: "⛰️",
@@ -24,27 +48,11 @@ const LAYERS = [
   },
   {
     id: "relief",
-    label: "Relief ombré",
+    label: "Relief",
     emoji: "🏔️",
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}",
-    attribution: '&copy; <a href="https://www.esri.com">Esri</a>, USGS, NOAA',
+    attribution: '&copy; <a href="https://www.esri.com">Esri</a>',
     maxZoom: 13,
-  },
-  {
-    id: "terrain",
-    label: "Terrain ESRI",
-    emoji: "🗺️",
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Terrain_Base/MapServer/tile/{z}/{y}/{x}",
-    attribution: '&copy; <a href="https://www.esri.com">Esri</a>, USGS, NGA, NASA',
-    maxZoom: 13,
-  },
-  {
-    id: "standard",
-    label: "Standard",
-    emoji: "🗾",
-    url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    maxZoom: 19,
   },
 ] as const;
 
@@ -81,7 +89,7 @@ export default function MapPage() {
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeLayer, setActiveLayer] = useState<LayerId>("topo");
+  const [activeLayer, setActiveLayer] = useState<LayerId>("voyager");
   const [centered, setCentered] = useState(false);
   const [elevation, setElevation] = useState<number | null>(null);
   const [elevationLoading, setElevationLoading] = useState(false);
