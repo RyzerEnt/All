@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@clerk/expo";
 
 export type UserProfile = {
@@ -49,9 +49,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [sessions, setSessions] = useState<UserSession[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Use a ref so authFetch never needs getToken in its deps — avoids infinite
+  // render loops caused by Clerk returning a new getToken reference each render.
+  const getTokenRef = useRef(getToken);
+  useEffect(() => { getTokenRef.current = getToken; });
+
   const authFetch = useCallback(
     async (path: string, options: RequestInit = {}) => {
-      const token = await getToken();
+      const token = await getTokenRef.current();
       const base = getApiBase();
       return fetch(`${base}/api${path}`, {
         ...options,
@@ -62,7 +67,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         },
       });
     },
-    [getToken]
+    [] // stable — getToken accessed via ref
   );
 
   const refreshProfile = useCallback(async () => {

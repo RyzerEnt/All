@@ -54,9 +54,11 @@ function AuthAndSetupGuard({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(t);
   }, []);
 
+  const getTokenRef = React.useRef(getToken);
+  React.useEffect(() => { getTokenRef.current = getToken; });
   React.useEffect(() => {
-    setAuthTokenGetter(() => getToken());
-  }, [getToken]);
+    setAuthTokenGetter(() => getTokenRef.current());
+  }, []);
 
   React.useEffect(() => {
     AsyncStorage.getItem("hasSeenOnboarding")
