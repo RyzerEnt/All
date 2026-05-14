@@ -65,12 +65,26 @@ function ChangeLayer({ url, attribution, maxZoom }: { url: string; attribution: 
   return null;
 }
 
+async function fetchElevation(lat: number, lng: number): Promise<number | null> {
+  try {
+    const res = await fetch(
+      `https://api.opentopodata.org/v1/srtm30m?locations=${lat},${lng}`
+    );
+    const data = await res.json();
+    return data?.results?.[0]?.elevation ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export default function MapPage() {
   const [pos, setPos] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeLayer, setActiveLayer] = useState<LayerId>("topo");
   const [centered, setCentered] = useState(false);
+  const [elevation, setElevation] = useState<number | null>(null);
+  const [elevationLoading, setElevationLoading] = useState(false);
 
   const layer = LAYERS.find((l) => l.id === activeLayer)!;
 
@@ -78,17 +92,32 @@ export default function MapPage() {
     if (!navigator.geolocation) {
       setError("Géolocalisation non supportée — affichage des Alpes par défaut.");
       setLoading(false);
+      const lat = 45.8326, lng = 6.8652;
+      setPos({ lat, lng });
+      setElevationLoading(true);
+      fetchElevation(lat, lng).then((alt) => { setElevation(alt); setElevationLoading(false); });
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (p) => {
-        setPos({ lat: p.coords.latitude, lng: p.coords.longitude });
+        const lat = p.coords.latitude;
+        const lng = p.coords.longitude;
+        setPos({ lat, lng });
         setLoading(false);
+        if (p.coords.altitude !== null) {
+          setElevation(Math.round(p.coords.altitude));
+        } else {
+          setElevationLoading(true);
+          fetchElevation(lat, lng).then((alt) => { setElevation(alt); setElevationLoading(false); });
+        }
       },
       () => {
-        setPos({ lat: 45.8326, lng: 6.8652 });
+        const lat = 45.8326, lng = 6.8652;
+        setPos({ lat, lng });
         setError("Position non disponible — affichage des Alpes par défaut.");
         setLoading(false);
+        setElevationLoading(true);
+        fetchElevation(lat, lng).then((alt) => { setElevation(alt); setElevationLoading(false); });
       },
       { timeout: 8000 }
     );
@@ -189,17 +218,47 @@ export default function MapPage() {
             ))}
           </div>
 
-          {/* Bottom badge */}
+          {/* Bottom info bar */}
           <div style={{
             position: "absolute", bottom: 16, left: "50%", transform: "translateX(-50%)",
-            zIndex: 1000, background: "rgba(255,255,255,0.95)", backdropFilter: "blur(12px)",
-            borderRadius: 12, padding: "0.45rem 1.1rem", boxShadow: "0 2px 16px rgba(0,0,0,0.12)",
-            border: "1px solid rgba(37,99,235,0.15)", display: "flex", alignItems: "center", gap: "0.5rem",
+            zIndex: 1000, background: "rgba(255,255,255,0.97)", backdropFilter: "blur(16px)",
+            borderRadius: 14, padding: "0.55rem 1.25rem", boxShadow: "0 2px 20px rgba(0,0,0,0.13)",
+            border: "1px solid rgba(37,99,235,0.15)", display: "flex", alignItems: "center", gap: "1rem",
           }}>
-            <span style={{ fontSize: "0.9rem" }}>{layer.emoji}</span>
-            <span style={{ fontSize: "0.7rem", fontWeight: 700, letterSpacing: "0.06em", color: "#1e40af", textTransform: "uppercase" }}>
-              {layer.label} · Ryzer Map
-            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              <span style={{ fontSize: "0.9rem" }}>{layer.emoji}</span>
+              <span style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.06em", color: "#1e40af", textTransform: "uppercase" }}>
+                {layer.label}
+              </span>
+            </div>
+
+            <div style={{ width: 1, height: 16, background: "rgba(37,99,235,0.15)" }} />
+
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+              <span style={{ fontSize: "0.9rem" }}>📐</span>
+              <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
+                <span style={{ fontSize: "0.6rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Altitude</span>
+                <span style={{ fontSize: "0.82rem", fontWeight: 800, color: elevationLoading ? "#94a3b8" : "#2563eb" }}>
+                  {elevationLoading
+                    ? "…"
+                    : elevation !== null
+                    ? `${Math.round(elevation)} m`
+                    : "N/A"}
+                </span>
+              </div>
+            </div>
+
+            {pos && (
+              <>
+                <div style={{ width: 1, height: 16, background: "rgba(37,99,235,0.15)" }} />
+                <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.2 }}>
+                  <span style={{ fontSize: "0.6rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Position</span>
+                  <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "#334155" }}>
+                    {pos.lat.toFixed(4)}, {pos.lng.toFixed(4)}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
