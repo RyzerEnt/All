@@ -72,7 +72,7 @@ export default function SportPickerScreen() {
                 ]}
                 onPress={() =>
                   router.push({
-                    pathname: "/session/timer",
+                    pathname: sport.id === 1 ? "/session/run-timer" : "/session/timer",
                     params: {
                       sportId: sport.id,
                       sportName: sport.name,
