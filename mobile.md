@@ -112,7 +112,57 @@ La session est mise en cache dans `~/.expo/state.json`. Les prochains démarrage
 
 ---
 
-## 6. Résumé des variables d'environnement clés
+## 6. "Failed to download remote update" persistant malgré `updates.enabled: false`
+
+### Symptôme
+L'erreur persiste dans Expo Go même après avoir ajouté `updates: { enabled: false }` dans `app.config.js`.
+
+### Cause
+La présence de `extra.eas.projectId` dans `app.config.js` pousse Expo Go (SDK 52+) à vérifier EAS pour des mises à jour OTA, **indépendamment** du flag `updates.enabled`. Expo Go contacte les serveurs EAS, ne trouve pas de build publié, et affiche l'erreur.
+
+### Solution
+Supprimer `extra.eas` de `app.config.js`. La configuration EAS (projectId, slug) est gérée par `eas.json` et les serveurs EAS directement — elle n'a pas besoin d'être exposée dans le config runtime.
+
+```js
+// ❌ Cause le problème
+extra: {
+  eas: {
+    projectId: "506e06ba-a36e-49b9-8137-72634353f0fa",
+  },
+},
+
+// ✅ Supprimer ce bloc de app.config.js
+```
+
+---
+
+## 7. Module natif `react-native-maps` non disponible dans Expo Go
+
+### Symptôme
+L'app crashe ou affiche "Something went wrong" lors du chargement dans Expo Go, après l'installation de `react-native-maps`.
+
+### Cause
+`react-native-maps` a été retiré des modules natifs inclus dans Expo Go à partir de SDK 50+. L'import statique dans les fichiers `.native.tsx` provoque un crash au chargement du bundle natif, car le module n'est pas trouvé.
+
+### Solution
+Dans les fichiers `.native.tsx` qui utilisent `react-native-maps`, utiliser un `require()` dynamique dans un bloc `try/catch` :
+
+```ts
+let MapView: any = null;
+let mapsAvailable = false;
+
+try {
+  const maps = require("react-native-maps");
+  MapView = maps.default;
+  mapsAvailable = true;
+} catch {}
+```
+
+Afficher un fallback si `!mapsAvailable`. La carte complète avec GPS ne sera disponible que dans un **development build** (`eas build --profile development`), pas dans Expo Go.
+
+---
+
+## 8. Résumé des variables d'environnement clés
 
 | Variable | Où définie | Rôle |
 |---|---|---|
