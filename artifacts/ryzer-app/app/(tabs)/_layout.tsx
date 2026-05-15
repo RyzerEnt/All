@@ -1,8 +1,8 @@
 import { BlurView } from "expo-blur";
-import { Tabs, Redirect } from "expo-router";
+import { Tabs, Redirect, router } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import React from "react";
-import { Platform, StyleSheet, View, Text, useColorScheme, ActivityIndicator } from "react-native";
+import { Platform, StyleSheet, View, Text, useColorScheme, ActivityIndicator, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/expo";
 import { setAuthTokenGetter } from "@workspace/api-client-react";
@@ -111,6 +111,20 @@ function NativeTabLayout() {
   );
 }
 
+function FABButton() {
+  return (
+    <Pressable
+      onPress={() => router.push("/session/sport-picker")}
+      style={({ pressed }) => [
+        fabStyles.fab,
+        { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.94 : 1 }] },
+      ]}
+    >
+      <Feather name="play" size={26} color="#fff" />
+    </Pressable>
+  );
+}
+
 function ClassicTabLayout() {
   const colors = useColors();
   const colorScheme = useColorScheme();
@@ -119,7 +133,7 @@ function ClassicTabLayout() {
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
 
-  const tabBarHeight = isWeb ? 84 : 56 + insets.bottom;
+  const tabBarHeight = isWeb ? 84 : 60 + insets.bottom;
   const tabBarPaddingBottom = isWeb ? 34 : insets.bottom;
 
   return (
@@ -153,8 +167,19 @@ function ClassicTabLayout() {
             isIOS && SymbolView ? (
               <SymbolView name="house" tintColor={color} size={24} />
             ) : (
-              <Feather name="home" size={22} color={color} />
+              <Feather name="home" size={24} color={color} />
             ),
+        }}
+      />
+      <Tabs.Screen
+        name="start"
+        options={{
+          title: "Session",
+          tabBarButton: () => (
+            <View style={fabStyles.fabWrapper}>
+              <FABButton />
+            </View>
+          ),
         }}
       />
       <Tabs.Screen
@@ -165,7 +190,7 @@ function ClassicTabLayout() {
             isIOS && SymbolView ? (
               <SymbolView name="person" tintColor={color} size={24} />
             ) : (
-              <Feather name="user" size={22} color={color} />
+              <Feather name="user" size={24} color={color} />
             ),
         }}
       />
@@ -180,3 +205,26 @@ export default function TabLayout() {
 }
 
 const styles = StyleSheet.create({});
+
+const fabStyles = StyleSheet.create({
+  fabWrapper: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "flex-start",
+    paddingTop: 0,
+  },
+  fab: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: "#2563eb",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: -20,
+    shadowColor: "#2563eb",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
+    elevation: 10,
+  },
+});
