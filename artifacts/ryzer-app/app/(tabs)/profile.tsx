@@ -156,18 +156,6 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
-        {/* START SESSION shortcut */}
-        <Pressable
-          style={({ pressed }) => [
-            styles.sessionBtn,
-            { backgroundColor: BLUE, opacity: pressed ? 0.9 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
-          ]}
-          onPress={() => router.push("/session/sport-picker")}
-        >
-          <Feather name="play" size={16} color="#fff" />
-          <Text style={styles.sessionBtnText}>NOUVELLE SESSION</Text>
-        </Pressable>
-
         {/* STATS */}
         <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>STATISTIQUES</Text>
         <View style={styles.statsRow}>

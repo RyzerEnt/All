@@ -138,7 +138,7 @@ function ClassicTabLayout() {
           paddingBottom: tabBarPaddingBottom,
           paddingTop: 8,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "600", letterSpacing: 0.3 },
+        tabBarShowLabel: false,
         tabBarBackground: () =>
           isIOS ? (
             <BlurView intensity={95} tint={isDark ? "dark" : "light"} style={StyleSheet.absoluteFill} />
