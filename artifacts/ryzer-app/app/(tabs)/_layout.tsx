@@ -120,7 +120,7 @@ function FABButton() {
         { opacity: pressed ? 0.85 : 1, transform: [{ scale: pressed ? 0.94 : 1 }] },
       ]}
     >
-      <Feather name="play" size={26} color="#fff" />
+      <Feather name="plus" size={28} color="#fff" />
     </Pressable>
   );
 }
