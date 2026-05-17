@@ -166,17 +166,30 @@ export default function RunResultScreen() {
       const svgContent = generateSVG(coords, distance, durNum);
 
       if (Platform.OS === "web") {
-        const blob = new Blob([svgContent], { type: "image/svg+xml" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "parcours-ryzer.svg";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        // Data URI is more reliable than blob URL inside iframes / sandboxed contexts
+        const dataUri =
+          "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgContent);
+        try {
+          const a = document.createElement("a");
+          a.setAttribute("href", dataUri);
+          a.setAttribute("download", "parcours-ryzer.svg");
+          a.style.display = "none";
+          const root = document.body ?? document.documentElement;
+          root.appendChild(a);
+          a.click();
+          setTimeout(() => a.remove(), 200);
+        } catch {
+          // Fallback: open in new tab so the user can save manually
+          window.open(dataUri, "_blank");
+        }
       } else {
-        const path = (FileSystem.cacheDirectory ?? "") + "parcours-ryzer.svg";
+        const cacheDir = FileSystem.cacheDirectory;
+        if (!cacheDir) {
+          Alert.alert("Erreur", "Stockage temporaire indisponible sur cet appareil.");
+          setDownloading(false);
+          return;
+        }
+        const path = cacheDir + "parcours-ryzer.svg";
         await FileSystem.writeAsStringAsync(path, svgContent, {
           encoding: FileSystem.EncodingType.UTF8,
         });
@@ -184,12 +197,18 @@ export default function RunResultScreen() {
         if (canShare) {
           await Sharing.shareAsync(path, {
             mimeType: "image/svg+xml",
-            dialogTitle: "Télécharger mon parcours",
+            dialogTitle: "Partager mon parcours",
             UTI: "public.svg-image",
           });
+        } else {
+          Alert.alert(
+            "Partage indisponible",
+            "Le partage de fichiers n'est pas supporté sur cet appareil."
+          );
         }
       }
-    } catch {
+    } catch (err) {
+      console.error("[downloadSVG]", err);
       Alert.alert("Erreur", "Impossible d'exporter le parcours.");
     }
     setDownloading(false);
