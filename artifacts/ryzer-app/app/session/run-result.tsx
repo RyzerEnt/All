@@ -116,8 +116,6 @@ export default function RunResultScreen() {
       points: string; distanceM: string;
     }>();
 
-  const coords = runSession.getCoords();
-  const distance = runSession.getDistance() || parseInt(distanceM ?? "0");
   const durNum = parseInt(durationSeconds ?? "0");
   const ptNum = parseFloat(points ?? "0");
 
@@ -129,9 +127,16 @@ export default function RunResultScreen() {
   const [currentStreak, setCurrentStreak] = useState(0);
   const [downloading, setDownloading] = useState(false);
 
+  // Capture coords and distance once at mount — runSession.clear() is called
+  // after saving, so we must not re-read from runSession on subsequent re-renders.
+  const [coords] = useState(() => runSession.getCoords());
+  const [distance] = useState(
+    () => runSession.getDistance() || parseInt(distanceM ?? "0")
+  );
+
   const polylineCoords = useMemo(
     () => coords.map((c) => ({ latitude: c.latitude, longitude: c.longitude })),
-    [coords]
+    []
   );
 
   useEffect(() => {
