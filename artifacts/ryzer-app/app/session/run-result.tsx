@@ -156,24 +156,33 @@ export default function RunResultScreen() {
   }, []);
 
   const downloadSVG = async () => {
-    if (Platform.OS === "web") {
-      Alert.alert("Téléchargement", "Le téléchargement SVG est disponible uniquement sur mobile.");
-      return;
-    }
     setDownloading(true);
     try {
       const svgContent = generateSVG(coords, distance, durNum);
-      const path = (FileSystem.cacheDirectory ?? "") + "parcours-ryzer.svg";
-      await FileSystem.writeAsStringAsync(path, svgContent, {
-        encoding: FileSystem.EncodingType.UTF8,
-      });
-      const canShare = await Sharing.isAvailableAsync();
-      if (canShare) {
-        await Sharing.shareAsync(path, {
-          mimeType: "image/svg+xml",
-          dialogTitle: "Télécharger mon parcours",
-          UTI: "public.svg-image",
+
+      if (Platform.OS === "web") {
+        const blob = new Blob([svgContent], { type: "image/svg+xml" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "parcours-ryzer.svg";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } else {
+        const path = (FileSystem.cacheDirectory ?? "") + "parcours-ryzer.svg";
+        await FileSystem.writeAsStringAsync(path, svgContent, {
+          encoding: FileSystem.EncodingType.UTF8,
         });
+        const canShare = await Sharing.isAvailableAsync();
+        if (canShare) {
+          await Sharing.shareAsync(path, {
+            mimeType: "image/svg+xml",
+            dialogTitle: "Télécharger mon parcours",
+            UTI: "public.svg-image",
+          });
+        }
       }
     } catch {
       Alert.alert("Erreur", "Impossible d'exporter le parcours.");

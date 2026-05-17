@@ -9,8 +9,6 @@ interface Props {
 
 const VOYAGER_URL =
   "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
-const VOYAGER_ATTR =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com">CARTO</a>';
 
 function injectLeafletCSS() {
   if (typeof document === "undefined") return;
@@ -22,24 +20,34 @@ function injectLeafletCSS() {
   document.head.appendChild(link);
 }
 
+function injectMapStyle(id: string) {
+  if (typeof document === "undefined") return;
+  const styleId = `map-style-${id}`;
+  if (document.getElementById(styleId)) return;
+  const style = document.createElement("style");
+  style.id = styleId;
+  style.textContent = `
+    #${id} { touch-action: none; -webkit-tap-highlight-color: transparent; }
+    #${id} .leaflet-touch .leaflet-bar { display: none; }
+  `;
+  document.head.appendChild(style);
+}
+
 export default function LiveMapView({ coords, height }: Props) {
   const colors = useColors();
   const mapRef = useRef<any>(null);
   const polylineRef = useRef<any>(null);
   const markerRef = useRef<any>(null);
-  const containerRef = useRef<any>(null);
   const initializedRef = useRef(false);
+  const mapId = "live-map-container";
 
   useEffect(() => {
     injectLeafletCSS();
-
-    let L: any;
-    let map: any;
+    injectMapStyle(mapId);
 
     const init = async () => {
-      L = await import("leaflet");
-
-      const container = document.getElementById("live-map-container");
+      const L = await import("leaflet");
+      const container = document.getElementById(mapId);
       if (!container || initializedRef.current) return;
       initializedRef.current = true;
 
@@ -48,14 +56,20 @@ export default function LiveMapView({ coords, height }: Props) {
           ? [coords[coords.length - 1].latitude, coords[coords.length - 1].longitude]
           : [48.8566, 2.3522];
 
-      map = L.map(container, { zoomControl: true, attributionControl: true }).setView(center, 16);
+      const map = L.map(container, {
+        zoomControl: false,
+        attributionControl: false,
+      }).setView(center, 16);
       mapRef.current = map;
 
       L.tileLayer(VOYAGER_URL, {
-        attribution: VOYAGER_ATTR,
         maxZoom: 19,
         subdomains: "abcd",
+        detectRetina: true,
       }).addTo(map);
+
+      // Force correct size after mount (fixes blurriness)
+      setTimeout(() => map.invalidateSize(), 100);
 
       if (coords.length >= 2) {
         const latlngs = coords.map((c) => [c.latitude, c.longitude] as [number, number]);
@@ -107,7 +121,7 @@ export default function LiveMapView({ coords, height }: Props) {
 
       if (coords.length > 0) {
         const latest = coords[coords.length - 1];
-        map.panTo([latest.latitude, latest.longitude], { animate: true, duration: 0.6 });
+        map.panTo([latest.latitude, latest.longitude], { animate: true, duration: 0.4 });
 
         if (!markerRef.current) {
           markerRef.current = L.circleMarker(
@@ -122,8 +136,7 @@ export default function LiveMapView({ coords, height }: Props) {
   return (
     <View style={[styles.root, { height, backgroundColor: colors.card }]}>
       <div
-        id="live-map-container"
-        ref={containerRef}
+        id={mapId}
         style={{ width: "100%", height: "100%" }}
       />
     </View>

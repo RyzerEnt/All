@@ -10,8 +10,6 @@ interface Props {
 
 const VOYAGER_URL =
   "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
-const VOYAGER_ATTR =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com">CARTO</a>';
 
 function injectLeafletCSS() {
   if (typeof document === "undefined") return;
@@ -40,18 +38,13 @@ export default function RouteMapView({ coords, height }: Props) {
       const container = document.getElementById(mapId);
       if (!container) return;
 
-      let center: [number, number] = [48.8566, 2.3522];
-      let zoom = 14;
-
-      if (coords.length > 0) {
-        const lats = coords.map((c) => c.latitude);
-        const lons = coords.map((c) => c.longitude);
-        const minLat = Math.min(...lats);
-        const maxLat = Math.max(...lats);
-        const minLon = Math.min(...lons);
-        const maxLon = Math.max(...lons);
-        center = [(minLat + maxLat) / 2, (minLon + maxLon) / 2];
-      }
+      const center: [number, number] =
+        coords.length > 0
+          ? [
+              coords.reduce((s, c) => s + c.latitude, 0) / coords.length,
+              coords.reduce((s, c) => s + c.longitude, 0) / coords.length,
+            ]
+          : [48.8566, 2.3522];
 
       const map = L.map(mapId, {
         zoomControl: false,
@@ -61,14 +54,15 @@ export default function RouteMapView({ coords, height }: Props) {
         doubleClickZoom: false,
         touchZoom: false,
         keyboard: false,
-      }).setView(center, zoom);
+        tap: false,
+      }).setView(center, 14);
 
       mapRef.current = map;
 
       L.tileLayer(VOYAGER_URL, {
-        attribution: VOYAGER_ATTR,
         maxZoom: 19,
         subdomains: "abcd",
+        detectRetina: true,
       }).addTo(map);
 
       if (coords.length >= 2) {
@@ -80,7 +74,7 @@ export default function RouteMapView({ coords, height }: Props) {
           lineJoin: "round",
         }).addTo(map);
 
-        map.fitBounds(polyline.getBounds(), { padding: [24, 24] });
+        map.fitBounds(polyline.getBounds(), { padding: [28, 28], animate: false });
 
         L.circleMarker([coords[0].latitude, coords[0].longitude], {
           radius: 7,
@@ -95,6 +89,9 @@ export default function RouteMapView({ coords, height }: Props) {
           { radius: 7, color: "#fff", fillColor: "#ef4444", fillOpacity: 1, weight: 2 }
         ).addTo(map);
       }
+
+      // Fix blurriness on retina / after layout
+      setTimeout(() => map.invalidateSize(), 100);
     };
 
     init();
