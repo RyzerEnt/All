@@ -6,6 +6,7 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
@@ -38,6 +39,11 @@ function formatPace(elapsed: number, distM: number): string {
   const min = Math.floor(secPerKm / 60);
   const sec = Math.round(secPerKm % 60);
   return `${min}:${String(sec).padStart(2, "0")} /km`;
+}
+function formatSpeed(elapsed: number, distM: number): string {
+  if (distM < 10 || elapsed === 0) return "-- km/h";
+  const kmh = (distM / 1000) / (elapsed / 3600);
+  return `${kmh.toFixed(1)} km/h`;
 }
 
 function generateSVG(coords: RunCoord[], distanceM: number, durationS: number): string {
@@ -110,11 +116,13 @@ export default function RunResultScreen() {
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
 
-  const { sportName, sportIcon, durationSeconds, points, distanceM } =
+  const { sportId, sportName, sportIcon, durationSeconds, points, distanceM } =
     useLocalSearchParams<{
-      sportName: string; sportIcon: string; durationSeconds: string;
+      sportId: string; sportName: string; sportIcon: string; durationSeconds: string;
       points: string; distanceM: string;
     }>();
+
+  const isCycling = parseInt(sportId ?? "1") === 2;
 
   const durNum = parseInt(durationSeconds ?? "0");
   const ptNum = parseFloat(points ?? "0");
@@ -227,7 +235,11 @@ export default function RunResultScreen() {
       {/* Header */}
       <View style={styles.headerRow}>
         <View style={[styles.trophyWrap, { backgroundColor: "rgba(37,99,235,0.1)" }]}>
-          <Text style={styles.trophyEmoji}>🏃</Text>
+          <MaterialCommunityIcons
+            name={(sportIcon ?? "run") as React.ComponentProps<typeof MaterialCommunityIcons>["name"]}
+            size={40}
+            color={BLUE}
+          />
         </View>
         <Text style={[styles.congrats, { color: colors.mutedForeground }]}>SESSION TERMINÉE</Text>
         <Text style={[styles.title, { color: colors.foreground }]}>
@@ -292,7 +304,7 @@ export default function RunResultScreen() {
         {[
           { icon: "map-pin" as const, label: "Distance", value: formatDistance(distance), accent: false },
           { icon: "clock" as const, label: "Durée", value: formatDuration(durNum), accent: false, orange: true },
-          { icon: "activity" as const, label: "Allure", value: formatPace(durNum, distance), accent: false },
+          { icon: "activity" as const, label: isCycling ? "Vitesse" : "Allure", value: isCycling ? formatSpeed(durNum, distance) : formatPace(durNum, distance), accent: false },
           { icon: "zap" as const, label: "Ryzer Points", value: `+${finalPoints ?? ptNum}`, accent: true },
         ].map((row, i, arr) => (
           <React.Fragment key={row.label}>

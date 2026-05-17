@@ -13,6 +13,9 @@ type MCIcon = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
 const BLUE = "#2563eb";
 const ORANGE = "#f97316";
 
+// Sports using GPS tracking (map + distance + altitude)
+const GPS_SPORT_IDS = new Set([1, 2, 4, 5, 7]); // run, cyclisme, randonnée, ski de fond, aviron
+
 const SPORTS: { id: number; icon: MCIcon; name: string; met: number; accent: "blue" | "orange" }[] = [
   { id: 1, icon: "run",              name: "Course à pied", met: 8,   accent: "blue"   },
   { id: 2, icon: "bike",             name: "Cyclisme",      met: 7.5, accent: "orange" },
@@ -72,7 +75,7 @@ export default function SportPickerScreen() {
                 ]}
                 onPress={() =>
                   router.push({
-                    pathname: sport.id === 1 ? "/session/run-timer" : "/session/timer",
+                    pathname: GPS_SPORT_IDS.has(sport.id) ? "/session/run-timer" : "/session/timer",
                     params: {
                       sportId: sport.id,
                       sportName: sport.name,

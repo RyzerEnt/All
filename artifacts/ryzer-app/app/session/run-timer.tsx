@@ -9,6 +9,9 @@ import { useLocationTracking } from "@/hooks/useLocationTracking";
 import { runSession } from "@/store/runSession";
 import LiveMapView from "@/components/LiveMapView";
 
+// Sport 2 = Cyclisme → affiche vitesse en km/h au lieu de l'allure min/km
+const CYCLING_ID = 2;
+
 const BLUE = "#2563eb";
 const ORANGE = "#f97316";
 
@@ -36,6 +39,11 @@ function formatPace(elapsed: number, distM: number): string {
   const sec = Math.round(secPerKm % 60);
   return `${min}:${String(sec).padStart(2, "0")} /km`;
 }
+function formatSpeed(elapsed: number, distM: number): string {
+  if (distM < 10 || elapsed === 0) return "-- km/h";
+  const kmh = (distM / 1000) / (elapsed / 3600);
+  return `${kmh.toFixed(1)} km/h`;
+}
 
 export default function RunTimerScreen() {
   const colors = useColors();
@@ -44,10 +52,11 @@ export default function RunTimerScreen() {
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
 
-  const { sportName, sportIcon, met } = useLocalSearchParams<{
-    sportName: string; sportIcon: string; met: string;
+  const { sportId, sportName, sportIcon, met } = useLocalSearchParams<{
+    sportId: string; sportName: string; sportIcon: string; met: string;
   }>();
   const metNum = parseFloat(met ?? "8");
+  const isCycling = parseInt(sportId ?? "1") === CYCLING_ID;
 
   const [elapsed, setElapsed] = useState(0);
   const [running, setRunning] = useState(false);
@@ -105,6 +114,7 @@ export default function RunTimerScreen() {
     router.replace({
       pathname: "/session/run-result",
       params: {
+        sportId,
         sportName,
         sportIcon,
         met,
@@ -170,9 +180,11 @@ export default function RunTimerScreen() {
           <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
           <View style={styles.statItem}>
             <Text style={[styles.statValue, { color: colors.foreground }]}>
-              {formatPace(elapsed, distance)}
+              {isCycling ? formatSpeed(elapsed, distance) : formatPace(elapsed, distance)}
             </Text>
-            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>ALLURE</Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>
+              {isCycling ? "VITESSE" : "ALLURE"}
+            </Text>
           </View>
           <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
           <View style={styles.statItem}>
