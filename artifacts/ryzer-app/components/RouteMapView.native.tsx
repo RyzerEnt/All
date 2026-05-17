@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { View, StyleSheet } from "react-native";
+import { WebView } from "react-native-webview";
 
 interface Props {
   coords: { latitude: number; longitude: number }[];
@@ -8,118 +8,87 @@ interface Props {
   pointCount?: number;
 }
 
-const BLUE = "#2563eb";
-const GREEN = "#22c55e";
-const RED = "#ef4444";
+function buildRouteMapHTML(coords: { latitude: number; longitude: number }[]): string {
+  const center =
+    coords.length > 0
+      ? [
+          coords.reduce((s, c) => s + c.latitude, 0) / coords.length,
+          coords.reduce((s, c) => s + c.longitude, 0) / coords.length,
+        ]
+      : [48.8566, 2.3522];
 
-let MapView: any = null;
-let Polyline: any = null;
-let Marker: any = null;
-let UrlTile: any = null;
-let mapsAvailable = false;
+  const coordsJson = JSON.stringify(coords);
 
-try {
-  const maps = require("react-native-maps");
-  MapView = maps.default;
-  Polyline = maps.Polyline;
-  Marker = maps.Marker;
-  UrlTile = maps.UrlTile;
-  mapsAvailable = true;
-} catch {}
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #f1f5f9; }
+    #map { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    var coords = ${coordsJson};
+    var map = L.map('map', {
+      zoomControl: false,
+      attributionControl: false,
+      dragging: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+      keyboard: false,
+      tap: false
+    }).setView([${center[0]}, ${center[1]}], 14);
 
-export default function RouteMapView({ coords, height, pointCount = 0 }: Props) {
-  const region = useMemo(() => {
-    if (coords.length === 0) {
-      return {
-        latitude: 48.8566,
-        longitude: 2.3522,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      };
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      subdomains: 'abcd',
+      detectRetina: true
+    }).addTo(map);
+
+    if (coords.length >= 2) {
+      var latlngs = coords.map(function(c) { return [c.latitude, c.longitude]; });
+      var polyline = L.polyline(latlngs, {
+        color: '#2563eb', weight: 5, lineCap: 'round', lineJoin: 'round'
+      }).addTo(map);
+
+      map.fitBounds(polyline.getBounds(), { padding: [28, 28], animate: false });
+
+      L.circleMarker([coords[0].latitude, coords[0].longitude], {
+        radius: 7, color: '#fff', fillColor: '#22c55e', fillOpacity: 1, weight: 2
+      }).addTo(map);
+
+      L.circleMarker([coords[coords.length-1].latitude, coords[coords.length-1].longitude], {
+        radius: 7, color: '#fff', fillColor: '#ef4444', fillOpacity: 1, weight: 2
+      }).addTo(map);
     }
-    const lats = coords.map((c) => c.latitude);
-    const lons = coords.map((c) => c.longitude);
-    const minLat = Math.min(...lats);
-    const maxLat = Math.max(...lats);
-    const minLon = Math.min(...lons);
-    const maxLon = Math.max(...lons);
-    return {
-      latitude: (minLat + maxLat) / 2,
-      longitude: (minLon + maxLon) / 2,
-      latitudeDelta: Math.max(maxLat - minLat, 0.003) * 1.6,
-      longitudeDelta: Math.max(maxLon - minLon, 0.003) * 1.6,
-    };
-  }, [coords]);
+  </script>
+</body>
+</html>`;
+}
 
-  if (!mapsAvailable || !MapView) {
-    return (
-      <View style={[styles.placeholder, { height }]}>
-        <Feather name="map" size={28} color="#64748b" />
-        <Text style={styles.text}>
-          {pointCount >= 2
-            ? `${pointCount} points GPS enregistrés`
-            : "Carte non disponible dans Expo Go"}
-        </Text>
-      </View>
-    );
-  }
+export default function RouteMapView({ coords, height }: Props) {
+  const html = useMemo(() => buildRouteMapHTML(coords), [coords]);
 
   return (
     <View style={{ height }}>
-      <MapView
+      <WebView
+        source={{ html }}
         style={StyleSheet.absoluteFillObject}
-        region={region}
-        mapType="none"
         scrollEnabled={false}
-        zoomEnabled={false}
-        rotateEnabled={false}
-        pitchEnabled={false}
-      >
-        <UrlTile
-          urlTemplate="https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
-          maximumZ={19}
-          flipY={false}
-        />
-        {coords.length >= 2 && (
-          <Polyline
-            coordinates={coords}
-            strokeColor={BLUE}
-            strokeWidth={5}
-            lineCap="round"
-            lineJoin="round"
-          />
-        )}
-        {coords.length > 0 && (
-          <>
-            <Marker coordinate={coords[0]} anchor={{ x: 0.5, y: 0.5 }}>
-              <View style={[styles.dot, { backgroundColor: GREEN }]} />
-            </Marker>
-            <Marker
-              coordinate={coords[coords.length - 1]}
-              anchor={{ x: 0.5, y: 0.5 }}
-            >
-              <View style={[styles.dot, { backgroundColor: RED }]} />
-            </Marker>
-          </>
-        )}
-      </MapView>
+        bounces={false}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  placeholder: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: "#f1f5f9",
-  },
-  text: { fontSize: 12, fontWeight: "600", color: "#64748b" },
-  dot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    borderWidth: 2,
-    borderColor: "#fff",
-  },
-});
+const styles = StyleSheet.create({});

@@ -1,5 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { WebView } from "react-native-webview";
 import { Feather } from "@expo/vector-icons";
 
 interface Props {
@@ -7,114 +8,95 @@ interface Props {
   height: number;
 }
 
-const BLUE = "#2563eb";
-const GREEN = "#22c55e";
+const LIVE_MAP_HTML = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #f1f5f9; }
+    #map { width: 100%; height: 100%; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    var map = L.map('map', {
+      zoomControl: false,
+      attributionControl: false,
+      tap: true
+    }).setView([48.8566, 2.3522], 16);
 
-let MapView: any = null;
-let Polyline: any = null;
-let Marker: any = null;
-let UrlTile: any = null;
-let mapsAvailable = false;
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      subdomains: 'abcd',
+      detectRetina: true
+    }).addTo(map);
 
-try {
-  const maps = require("react-native-maps");
-  MapView = maps.default;
-  Polyline = maps.Polyline;
-  Marker = maps.Marker;
-  UrlTile = maps.UrlTile;
-  mapsAvailable = true;
-} catch {}
+    var polyline = null;
+    var startMarker = null;
 
-const DEFAULT_REGION = {
-  latitude: 48.8566,
-  longitude: 2.3522,
-  latitudeDelta: 0.01,
-  longitudeDelta: 0.01,
-};
+    window.updateCoords = function(coords) {
+      if (coords.length >= 2) {
+        var latlngs = coords.map(function(c) { return [c.latitude, c.longitude]; });
+        if (polyline) {
+          polyline.setLatLngs(latlngs);
+        } else {
+          polyline = L.polyline(latlngs, {
+            color: '#2563eb', weight: 5, lineCap: 'round', lineJoin: 'round'
+          }).addTo(map);
+        }
+      }
+      if (coords.length > 0) {
+        var latest = coords[coords.length - 1];
+        map.panTo([latest.latitude, latest.longitude], { animate: true, duration: 0.4 });
+        if (!startMarker) {
+          startMarker = L.circleMarker(
+            [coords[0].latitude, coords[0].longitude],
+            { radius: 7, color: '#fff', fillColor: '#22c55e', fillOpacity: 1, weight: 2 }
+          ).addTo(map);
+        }
+      }
+    };
+  </script>
+</body>
+</html>`;
 
 export default function LiveMapView({ coords, height }: Props) {
-  const mapRef = useRef<any>(null);
+  const webViewRef = useRef<any>(null);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (!mapsAvailable) return;
-    if (coords.length > 0 && mapRef.current) {
-      const latest = coords[coords.length - 1];
-      mapRef.current.animateToRegion(
-        {
-          latitude: latest.latitude,
-          longitude: latest.longitude,
-          latitudeDelta: 0.004,
-          longitudeDelta: 0.004,
-        },
-        600
-      );
-    }
-  }, [coords]);
-
-  if (!mapsAvailable || !MapView) {
-    return (
-      <View style={[styles.placeholder, { height }]}>
-        <Feather name="map" size={36} color="#64748b" />
-        <Text style={styles.text}>Carte non disponible dans Expo Go</Text>
-        <Text style={styles.sub}>Utilise un build de développement pour la carte GPS</Text>
-      </View>
+    if (!webViewRef.current || coords.length === 0) return;
+    webViewRef.current.injectJavaScript(
+      `window.updateCoords(${JSON.stringify(coords)}); true;`
     );
-  }
+  }, [coords]);
 
   return (
     <View style={{ height }}>
-      <MapView
-        ref={mapRef}
+      <WebView
+        ref={webViewRef}
+        source={{ html: LIVE_MAP_HTML }}
         style={StyleSheet.absoluteFillObject}
-        initialRegion={DEFAULT_REGION}
-        mapType="none"
-        showsUserLocation
-        showsMyLocationButton={false}
-      >
-        <UrlTile
-          urlTemplate="https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
-          maximumZ={19}
-          flipY={false}
-        />
-        {coords.length >= 2 && (
-          <Polyline
-            coordinates={coords}
-            strokeColor={BLUE}
-            strokeWidth={5}
-            lineCap="round"
-            lineJoin="round"
-          />
-        )}
-        {coords.length > 0 && (
-          <Marker coordinate={coords[0]} anchor={{ x: 0.5, y: 0.5 }}>
-            <View style={styles.startDot} />
-          </Marker>
-        )}
-      </MapView>
+        scrollEnabled={false}
+        bounces={false}
+        showsHorizontalScrollIndicator={false}
+        showsVerticalScrollIndicator={false}
+        onLoadEnd={() => {
+          initializedRef.current = true;
+          if (coords.length > 0) {
+            webViewRef.current?.injectJavaScript(
+              `window.updateCoords(${JSON.stringify(coords)}); true;`
+            );
+          }
+        }}
+      />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  placeholder: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-    backgroundColor: "#f1f5f9",
-  },
-  text: { fontSize: 13, fontWeight: "600", color: "#64748b" },
-  sub: {
-    fontSize: 11,
-    color: "#94a3b8",
-    textAlign: "center",
-    paddingHorizontal: 24,
-  },
-  startDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: GREEN,
-    borderWidth: 2,
-    borderColor: "#fff",
-  },
-});
+const styles = StyleSheet.create({});
