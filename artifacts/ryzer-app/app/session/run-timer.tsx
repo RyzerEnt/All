@@ -54,7 +54,7 @@ export default function RunTimerScreen() {
   const [finished, setFinished] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { coords, distance, permissionStatus, startTracking, stopTracking } =
+  const { coords, distance, altitude, permissionStatus, startTracking, stopTracking } =
     useLocationTracking();
 
   const points = computePoints(elapsed);
@@ -174,6 +174,13 @@ export default function RunTimerScreen() {
             </Text>
             <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>ALLURE</Text>
           </View>
+          <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, { color: altitude !== null ? colors.foreground : colors.mutedForeground }]}>
+              {altitude !== null ? `${altitude} m` : "-- m"}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.mutedForeground }]}>ALT.</Text>
+          </View>
         </View>
 
         {/* Points live */}
@@ -185,12 +192,20 @@ export default function RunTimerScreen() {
           </View>
         </View>
 
-        {/* GPS denied warning */}
+        {/* GPS permission banners */}
+        {permissionStatus === "requesting" && (
+          <View style={[styles.gpsWarning, { backgroundColor: "rgba(37,99,235,0.07)", borderColor: "rgba(37,99,235,0.25)" }]}>
+            <Feather name="map-pin" size={14} color={BLUE} />
+            <Text style={[styles.gpsWarningText, { color: BLUE }]}>
+              Autorisation de localisation demandée…
+            </Text>
+          </View>
+        )}
         {permissionStatus === "denied" && (
           <View style={[styles.gpsWarning, { backgroundColor: "rgba(249,115,22,0.1)", borderColor: "rgba(249,115,22,0.3)" }]}>
             <Feather name="alert-triangle" size={14} color={ORANGE} />
             <Text style={[styles.gpsWarningText, { color: ORANGE }]}>
-              GPS refusé — distance non disponible
+              GPS refusé — distance et altitude non disponibles
             </Text>
           </View>
         )}
