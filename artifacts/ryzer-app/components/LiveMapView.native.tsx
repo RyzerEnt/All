@@ -13,6 +13,7 @@ const GREEN = "#22c55e";
 let MapView: any = null;
 let Polyline: any = null;
 let Marker: any = null;
+let UrlTile: any = null;
 let mapsAvailable = false;
 
 try {
@@ -20,6 +21,7 @@ try {
   MapView = maps.default;
   Polyline = maps.Polyline;
   Marker = maps.Marker;
+  UrlTile = maps.UrlTile;
   mapsAvailable = true;
 } catch {}
 
@@ -65,10 +67,15 @@ export default function LiveMapView({ coords, height }: Props) {
         ref={mapRef}
         style={StyleSheet.absoluteFillObject}
         initialRegion={DEFAULT_REGION}
+        mapType="none"
         showsUserLocation
         showsMyLocationButton={false}
-        mapType="standard"
       >
+        <UrlTile
+          urlTemplate="https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+          maximumZ={19}
+          flipY={false}
+        />
         {coords.length >= 2 && (
           <Polyline
             coordinates={coords}
@@ -90,13 +97,24 @@ export default function LiveMapView({ coords, height }: Props) {
 
 const styles = StyleSheet.create({
   placeholder: {
-    alignItems: "center", justifyContent: "center", gap: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
     backgroundColor: "#f1f5f9",
   },
   text: { fontSize: 13, fontWeight: "600", color: "#64748b" },
-  sub: { fontSize: 11, color: "#94a3b8", textAlign: "center", paddingHorizontal: 24 },
+  sub: {
+    fontSize: 11,
+    color: "#94a3b8",
+    textAlign: "center",
+    paddingHorizontal: 24,
+  },
   startDot: {
-    width: 14, height: 14, borderRadius: 7,
-    backgroundColor: "#22c55e", borderWidth: 2, borderColor: "#fff",
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: GREEN,
+    borderWidth: 2,
+    borderColor: "#fff",
   },
 });

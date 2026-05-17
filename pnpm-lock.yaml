@@ -431,6 +431,9 @@ importers:
 
   artifacts/ryzer-app:
     dependencies:
+      '@types/leaflet':
+        specifier: ^1.9.21
+        version: 1.9.21
       expo-build-properties:
         specifier: ^1.0.10
         version: 1.0.10(expo@54.0.34)
@@ -440,6 +443,12 @@ importers:
       expo-sharing:
         specifier: ^14.0.8
         version: 14.0.8(expo@54.0.34)
+      leaflet:
+        specifier: ^1.9.4
+        version: 1.9.4
+      react-leaflet:
+        specifier: ^5.0.0
+        version: 5.0.0(leaflet@1.9.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react-native-maps:
         specifier: ^1.20.1
         version: 1.20.1(react-native-web@0.21.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-native@0.81.5(@babel/core@7.29.0)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)

@@ -15,6 +15,7 @@ const RED = "#ef4444";
 let MapView: any = null;
 let Polyline: any = null;
 let Marker: any = null;
+let UrlTile: any = null;
 let mapsAvailable = false;
 
 try {
@@ -22,13 +23,19 @@ try {
   MapView = maps.default;
   Polyline = maps.Polyline;
   Marker = maps.Marker;
+  UrlTile = maps.UrlTile;
   mapsAvailable = true;
 } catch {}
 
 export default function RouteMapView({ coords, height, pointCount = 0 }: Props) {
   const region = useMemo(() => {
     if (coords.length === 0) {
-      return { latitude: 48.8566, longitude: 2.3522, latitudeDelta: 0.01, longitudeDelta: 0.01 };
+      return {
+        latitude: 48.8566,
+        longitude: 2.3522,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      };
     }
     const lats = coords.map((c) => c.latitude);
     const lons = coords.map((c) => c.longitude);
@@ -49,7 +56,9 @@ export default function RouteMapView({ coords, height, pointCount = 0 }: Props) 
       <View style={[styles.placeholder, { height }]}>
         <Feather name="map" size={28} color="#64748b" />
         <Text style={styles.text}>
-          {pointCount >= 2 ? `${pointCount} points GPS enregistrés` : "Carte non disponible dans Expo Go"}
+          {pointCount >= 2
+            ? `${pointCount} points GPS enregistrés`
+            : "Carte non disponible dans Expo Go"}
         </Text>
       </View>
     );
@@ -60,12 +69,17 @@ export default function RouteMapView({ coords, height, pointCount = 0 }: Props) 
       <MapView
         style={StyleSheet.absoluteFillObject}
         region={region}
+        mapType="none"
         scrollEnabled={false}
         zoomEnabled={false}
         rotateEnabled={false}
         pitchEnabled={false}
-        mapType="standard"
       >
+        <UrlTile
+          urlTemplate="https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+          maximumZ={19}
+          flipY={false}
+        />
         {coords.length >= 2 && (
           <Polyline
             coordinates={coords}
@@ -80,7 +94,10 @@ export default function RouteMapView({ coords, height, pointCount = 0 }: Props) 
             <Marker coordinate={coords[0]} anchor={{ x: 0.5, y: 0.5 }}>
               <View style={[styles.dot, { backgroundColor: GREEN }]} />
             </Marker>
-            <Marker coordinate={coords[coords.length - 1]} anchor={{ x: 0.5, y: 0.5 }}>
+            <Marker
+              coordinate={coords[coords.length - 1]}
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
               <View style={[styles.dot, { backgroundColor: RED }]} />
             </Marker>
           </>
@@ -92,9 +109,17 @@ export default function RouteMapView({ coords, height, pointCount = 0 }: Props) 
 
 const styles = StyleSheet.create({
   placeholder: {
-    alignItems: "center", justifyContent: "center", gap: 8,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
     backgroundColor: "#f1f5f9",
   },
   text: { fontSize: 12, fontWeight: "600", color: "#64748b" },
-  dot: { width: 14, height: 14, borderRadius: 7, borderWidth: 2, borderColor: "#fff" },
+  dot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
 });
