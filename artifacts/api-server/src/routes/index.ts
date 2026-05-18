@@ -6,6 +6,7 @@ import waitlistRouter from "./waitlist";
 import featuresRouter from "./features";
 import ryzerRouter from "./ryzer";
 import challengesRouter from "./challenges";
+import calisthenicsUserRouter from "./calisthenics-user";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(waitlistRouter);
 router.use(featuresRouter);
 router.use(ryzerRouter);
 router.use(challengesRouter);
+router.use(calisthenicsUserRouter);
 
 export default router;
