@@ -99,17 +99,19 @@ export default function DefiScreen() {
 
   useEffect(() => { load(); }, []);
 
-  const totalDone = challenges.filter((c) => c.done).length;
-  const total = challenges.length;
+  const normalChallengesList = challenges.filter((c) => !c.isCalisthenics);
+  const totalDone = normalChallengesList.filter((c) => c.done).length;
+  const total = normalChallengesList.length;
 
-  // Group by category
-  const categories = Array.from(new Set(challenges.map((c) => c.category)));
+  // Group by category (normal challenges only)
+  const categories = Array.from(new Set(normalChallengesList.map((c) => c.category)));
   const grouped = categories.map((cat) => ({
     category: cat,
-    items: challenges.filter((c) => c.category === cat),
+    items: normalChallengesList.filter((c) => c.category === cat),
   }));
 
-  const hasCalisthenics = challenges.some((c) => c.isCalisthenics);
+  const calisthenicsCount = challenges.filter((c) => c.isCalisthenics && c.done).length;
+  const calisthenicsTotal = challenges.filter((c) => c.isCalisthenics).length;
 
   return (
     <ScrollView
@@ -128,27 +130,29 @@ export default function DefiScreen() {
         TES <Text style={{ color: ORANGE }}>DÉFIS</Text>
       </Text>
 
-      {/* Calisthenics banner */}
-      {hasCalisthenics && (
-        <Pressable
-          onPress={() => router.push("/calisthenics")}
-          style={({ pressed }) => [
-            styles.caliBanner,
-            { opacity: pressed ? 0.85 : 1 },
-          ]}
-        >
-          <View style={styles.caliBannerLeft}>
-            <View style={styles.caliIconWrap}>
-              <MaterialCommunityIcons name="arm-flex" size={22} color="#fff" />
-            </View>
-            <View>
-              <Text style={styles.caliBannerTitle}>Défis de callisthénie</Text>
-              <Text style={styles.caliBannerSub}>Découvre les défis sans équipement</Text>
-            </View>
+      {/* Calisthenics banner — always visible */}
+      <Pressable
+        onPress={() => router.push("/calisthenics")}
+        style={({ pressed }) => [
+          styles.caliBanner,
+          { opacity: pressed ? 0.85 : 1 },
+        ]}
+      >
+        <View style={styles.caliBannerLeft}>
+          <View style={styles.caliIconWrap}>
+            <MaterialCommunityIcons name="arm-flex" size={22} color="#fff" />
           </View>
-          <Feather name="chevron-right" size={18} color="rgba(255,255,255,0.7)" />
-        </Pressable>
-      )}
+          <View>
+            <Text style={styles.caliBannerTitle}>Défis Callisthénie 💪</Text>
+            <Text style={styles.caliBannerSub}>
+              {calisthenicsTotal > 0
+                ? `${calisthenicsCount}/${calisthenicsTotal} complétés · Programme mensuel`
+                : "Défis sans équipement · Programme mensuel"}
+            </Text>
+          </View>
+        </View>
+        <Feather name="chevron-right" size={18} color="rgba(255,255,255,0.7)" />
+      </Pressable>
 
       {/* Global progress card */}
       {!loading && (

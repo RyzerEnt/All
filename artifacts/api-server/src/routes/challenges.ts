@@ -43,12 +43,13 @@ router.get("/me/challenges", async (req, res) => {
     const clerkUserId = auth?.userId;
     if (!clerkUserId) return res.status(401).json({ error: "Unauthorized" });
 
-    const [challengesRes, userRes, sessionsRes, sportsRes, distanceRes] = await Promise.all([
+    const [challengesRes, userRes, sessionsRes, sportsRes, distanceRes, manualChecksRes] = await Promise.all([
       pool.query(`SELECT * FROM challenges ORDER BY sort_order ASC, id ASC`),
       pool.query(`SELECT total_points FROM ryzer_users WHERE clerk_user_id = $1`, [clerkUserId]),
       pool.query(`SELECT COUNT(*)::int AS total FROM ryzer_sessions WHERE clerk_user_id = $1`, [clerkUserId]),
       pool.query(`SELECT COUNT(DISTINCT sport_name)::int AS total FROM ryzer_sessions WHERE clerk_user_id = $1`, [clerkUserId]),
       pool.query(`SELECT COALESCE(SUM(COALESCE(distance_m, 0)), 0) AS total FROM ryzer_sessions WHERE clerk_user_id = $1`, [clerkUserId]),
+      pool.query(`SELECT challenge_id FROM calisthenics_manual_checks WHERE clerk_user_id = $1`, [clerkUserId]),
     ]);
 
     const totalPoints = userRes.rows[0]?.total_points ?? 0;
@@ -84,6 +85,9 @@ router.get("/me/challenges", async (req, res) => {
       }
     }
 
+    // Manual checks for calisthenics challenges
+    const manualChecksSet = new Set<number>(manualChecksRes.rows.map((r: any) => r.challenge_id));
+
     // Fetch completed challenges for this user
     const { rows: completedRows } = await pool.query(
       `SELECT challenge_id, completed_at FROM user_challenge_progress WHERE clerk_user_id = $1`,
@@ -92,6 +96,17 @@ router.get("/me/challenges", async (req, res) => {
     const completedMap = new Map(completedRows.map((r) => [r.challenge_id, r.completed_at]));
 
     const challenges = challengesRes.rows.map((c) => {
+      // Calisthenics challenges are ONLY marked done via manual checks — never auto-computed
+      if (c.is_calisthenics) {
+        const done = manualChecksSet.has(c.id);
+        return {
+          ...formatChallenge(c),
+          progress: done ? 1 : 0,
+          done,
+          completedAt: completedMap.get(c.id) ?? null,
+        };
+      }
+
       let progress = 0;
       switch (c.metric_type) {
         case "distance": progress = Math.min(totalDistanceKm, c.target_value); break;
@@ -109,8 +124,8 @@ router.get("/me/challenges", async (req, res) => {
       };
     });
 
-    // Auto-mark newly completed challenges
-    const newlyDone = challenges.filter((c) => c.done && !completedMap.has(c.id));
+    // Auto-mark newly completed challenges (non-calisthenics only)
+    const newlyDone = challenges.filter((c) => c.done && !c.isCalisthenics && !completedMap.has(c.id));
     if (newlyDone.length > 0) {
       await Promise.all(
         newlyDone.map((c) =>
