@@ -14,7 +14,7 @@ import { useColors } from "@/hooks/useColors";
 import { useUser } from "@/contexts/UserContext";
 import { FlameIcon } from "@/components/FlameIcon";
 import { runSession, RunCoord } from "@/store/runSession";
-import RouteMapView from "@/components/RouteMapView";
+import { WebView } from "react-native-webview";
 
 const BLUE = "#2563eb";
 const ORANGE = "#f97316";
@@ -44,6 +44,29 @@ function formatSpeed(elapsed: number, distM: number): string {
   if (distM < 10 || elapsed === 0) return "-- km/h";
   const kmh = (distM / 1000) / (elapsed / 3600);
   return `${kmh.toFixed(1)} km/h`;
+}
+
+function generateRouteSVG(coords: { latitude: number; longitude: number }[]): string | null {
+  if (coords.length < 2) return null;
+  const lats = coords.map((c) => c.latitude);
+  const lons = coords.map((c) => c.longitude);
+  const minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const minLon = Math.min(...lons), maxLon = Math.max(...lons);
+  const W = 400, H = 180, PAD = 24;
+  const latRange = maxLat - minLat || 0.001;
+  const lonRange = maxLon - minLon || 0.001;
+  const scale = Math.min((W - PAD * 2) / lonRange, (H - PAD * 2) / latRange);
+  const scaledW = lonRange * scale, scaledH = latRange * scale;
+  const offsetX = PAD + ((W - PAD * 2) - scaledW) / 2;
+  const offsetY = PAD + ((H - PAD * 2) - scaledH) / 2;
+  const toXY = (c: { latitude: number; longitude: number }) => ({
+    x: offsetX + ((c.longitude - minLon) / lonRange) * scaledW,
+    y: offsetY + (1 - (c.latitude - minLat) / latRange) * scaledH,
+  });
+  const pts = coords.map(toXY);
+  const pathD = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const s = pts[0], e = pts[pts.length - 1];
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}"><path d="${pathD}" fill="none" stroke="#2563eb" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="${s.x.toFixed(1)}" cy="${s.y.toFixed(1)}" r="7" fill="#22c55e" stroke="white" stroke-width="2.5"/><circle cx="${e.x.toFixed(1)}" cy="${e.y.toFixed(1)}" r="7" fill="#ef4444" stroke="white" stroke-width="2.5"/></svg>`;
 }
 
 function generateSVG(coords: RunCoord[], distanceM: number, durationS: number): string {
@@ -147,6 +170,14 @@ export default function RunResultScreen() {
     []
   );
 
+  const svgHtml = useMemo(() => {
+    const trace = generateRouteSVG(polylineCoords);
+    if (!trace) {
+      return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;}body{background:#f8fafc;display:flex;align-items:center;justify-content:center;height:100vh;font-family:Arial,sans-serif;font-size:13px;color:#94a3b8;}</style></head><body>Pas de données GPS</body></html>`;
+    }
+    return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{margin:0;padding:0;box-sizing:border-box;}body{background:#f8fafc;display:flex;align-items:center;justify-content:center;height:100vh;}svg{max-width:100%;max-height:100%;}</style></head><body>${trace}</body></html>`;
+  }, []);
+
   useEffect(() => {
     (async () => {
       setSaving(true);
@@ -249,9 +280,16 @@ export default function RunResultScreen() {
         </Text>
       </View>
 
-      {/* MAP with route */}
-      <View style={[styles.mapCard, { borderColor: colors.border }]}>
-        <RouteMapView coords={polylineCoords} height={200} pointCount={coords.length} />
+      {/* Route SVG trace (no map background) */}
+      <View style={[styles.mapCard, { borderColor: colors.border, backgroundColor: "#f8fafc" }]}>
+        <WebView
+          source={{ html: svgHtml }}
+          style={{ height: 170 }}
+          scrollEnabled={false}
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+        />
         <View style={[styles.mapLegend, { backgroundColor: colors.card, borderTopColor: colors.border }]}>
           <View style={styles.legendItem}>
             <View style={[styles.legendDot, { backgroundColor: GREEN }]} />

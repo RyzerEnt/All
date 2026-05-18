@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { View, Text, StyleSheet, Pressable, Platform, Dimensions } from "react-native";
+import { View, Text, StyleSheet, Pressable, Platform, Dimensions, ActivityIndicator } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -137,7 +137,18 @@ export default function RunTimerScreen() {
     <View style={[styles.root, { backgroundColor: colors.background }]}>
       {/* MAP SECTION */}
       <View style={{ height: mapHeightWithPad, overflow: "hidden" }}>
-        <LiveMapView coords={polylineCoords} height={mapHeightWithPad} />
+        {coords.length > 0 ? (
+          <LiveMapView coords={polylineCoords} height={mapHeightWithPad} />
+        ) : (
+          <View style={[styles.gpsPlaceholder, { height: mapHeightWithPad }]}>
+            <ActivityIndicator color={BLUE} size="large" />
+            <Text style={styles.gpsPlaceholderText}>
+              {permissionStatus === "denied"
+                ? "GPS non disponible"
+                : "Chargement de la position…"}
+            </Text>
+          </View>
+        )}
 
         {/* Status chip overlay */}
         <View style={[styles.chipWrapper, { top: topPad + 12 }]}>
@@ -297,6 +308,11 @@ const styles = StyleSheet.create({
   },
   pointsDot: { width: 5, height: 5, borderRadius: 3 },
   pointsLabel: { fontSize: 9, fontWeight: "700", letterSpacing: 0.8 },
+  gpsPlaceholder: {
+    alignItems: "center", justifyContent: "center", gap: 14,
+    backgroundColor: "#f1f5f9",
+  },
+  gpsPlaceholderText: { fontSize: 13, fontWeight: "600", color: "#94a3b8", letterSpacing: 0.2 },
   gpsWarning: {
     flexDirection: "row", alignItems: "center", gap: 6,
     borderWidth: 1, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 8,
