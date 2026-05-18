@@ -750,40 +750,61 @@ export default function Admin() {
                 <p className="text-lg">Aucun défi pour le moment.</p>
                 <p className="text-sm mt-1">Cliquez sur "+ Ajouter" pour créer le premier.</p>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {challenges.map(c => {
-                  const accentColor = c.accent === "orange" ? "#f97316" : c.accent === "green" ? "#22c55e" : "#2563eb";
-                  return (
-                    <div key={c.id} className="flex items-center gap-4 bg-card/40 border border-white/5 rounded-xl px-5 py-4 hover:bg-white/5 transition-colors">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-white font-semibold">{c.title}</span>
-                          {c.isCalisthenics && (
-                            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">callisthénie</span>
-                          )}
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: `${accentColor}20`, color: accentColor }}>
-                            {c.category}
-                          </span>
-                        </div>
-                        {c.description && <p className="text-white/50 text-sm truncate">{c.description}</p>}
-                        <p className="text-white/30 text-xs mt-0.5">
-                          {c.metricType} · objectif {c.targetValue} {c.targetUnit} · {c.xpReward} XP
-                        </p>
+            ) : (() => {
+              const CATEGORY_ORDER = ["DISTANCE", "RÉGULARITÉ", "MULTI-SPORTS", "POINTS"];
+              const grouped = challenges.reduce<Record<string, Challenge[]>>((acc, c) => {
+                const cat = c.category || "AUTRE";
+                if (!acc[cat]) acc[cat] = [];
+                acc[cat].push(c);
+                return acc;
+              }, {});
+              const sortedCategories = [
+                ...CATEGORY_ORDER.filter(cat => grouped[cat]),
+                ...Object.keys(grouped).filter(cat => !CATEGORY_ORDER.includes(cat)),
+              ];
+              return (
+                <div className="space-y-8">
+                  {sortedCategories.map(category => (
+                    <div key={category}>
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="text-xs font-bold tracking-widest uppercase text-white/40">{category}</span>
+                        <span className="text-xs text-white/20">{grouped[category].length} défi{grouped[category].length !== 1 ? "s" : ""}</span>
+                        <div className="flex-1 h-px bg-white/5" />
                       </div>
-                      <div className="flex gap-2 flex-shrink-0">
-                        <Button size="sm" variant="outline" onClick={() => startEditChallenge(c)} className="border-white/10 text-white/70 hover:text-white rounded-lg text-xs">
-                          Modifier
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => deleteChallenge(c.id)} className="border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg text-xs">
-                          Supprimer
-                        </Button>
+                      <div className="space-y-2">
+                        {grouped[category].map(c => {
+                          const accentColor = c.accent === "orange" ? "#f97316" : c.accent === "green" ? "#22c55e" : "#2563eb";
+                          return (
+                            <div key={c.id} className="flex items-center gap-4 bg-card/40 border border-white/5 rounded-xl px-5 py-4 hover:bg-white/5 transition-colors">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-0.5">
+                                  <span className="text-white font-semibold">{c.title}</span>
+                                  {c.isCalisthenics && (
+                                    <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">callisthénie</span>
+                                  )}
+                                </div>
+                                {c.description && <p className="text-white/50 text-sm truncate">{c.description}</p>}
+                                <p className="text-white/30 text-xs mt-0.5">
+                                  {c.metricType} · objectif {c.targetValue} {c.targetUnit} · {c.xpReward} XP
+                                </p>
+                              </div>
+                              <div className="flex gap-2 flex-shrink-0">
+                                <Button size="sm" variant="outline" onClick={() => startEditChallenge(c)} className="border-white/10 text-white/70 hover:text-white rounded-lg text-xs">
+                                  Modifier
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => deleteChallenge(c.id)} className="border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg text-xs">
+                                  Supprimer
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  ))}
+                </div>
+              );
+            })()}
           </div>
         )}
 
