@@ -42,7 +42,6 @@ function ChallengeCard({ item }: { item: UserChallenge }) {
       <View style={[styles.cardIcon, { backgroundColor: bg }]}>
         <MaterialCommunityIcons name={item.icon as MCIcon} size={22} color={color} />
       </View>
-
       <View style={styles.cardBody}>
         <View style={styles.cardHeader}>
           <Text style={[styles.cardTitle, { color: colors.foreground }]} numberOfLines={1}>
@@ -52,11 +51,9 @@ function ChallengeCard({ item }: { item: UserChallenge }) {
             <Text style={[styles.xpText, { color }]}>+{item.xpReward} XP</Text>
           </View>
         </View>
-
         <Text style={[styles.cardDesc, { color: colors.mutedForeground }]} numberOfLines={1}>
           {item.description}
         </Text>
-
         <View style={styles.progressRow}>
           <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
             <View style={[styles.progressFill, { width: `${pct * 100}%` as any, backgroundColor: color }]} />
@@ -68,7 +65,6 @@ function ChallengeCard({ item }: { item: UserChallenge }) {
           </Text>
         </View>
       </View>
-
       {item.done && (
         <View style={[styles.doneCheck, { backgroundColor: color }]}>
           <Feather name="check" size={12} color="#fff" />
@@ -78,7 +74,7 @@ function ChallengeCard({ item }: { item: UserChallenge }) {
   );
 }
 
-export default function DefiScreen() {
+export default function CalisthenicsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const isWeb = Platform.OS === "web";
@@ -91,8 +87,8 @@ export default function DefiScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    const data = await getChallenges();
-    setChallenges(data);
+    const all = await getChallenges();
+    setChallenges(all.filter((c) => c.isCalisthenics));
     setLoading(false);
   }, [getChallenges]);
 
@@ -107,136 +103,106 @@ export default function DefiScreen() {
   const totalDone = challenges.filter((c) => c.done).length;
   const total = challenges.length;
 
-  // Group by category
-  const categories = Array.from(new Set(challenges.map((c) => c.category)));
-  const grouped = categories.map((cat) => ({
-    category: cat,
-    items: challenges.filter((c) => c.category === cat),
-  }));
-
-  const hasCalisthenics = challenges.some((c) => c.isCalisthenics);
-
   return (
-    <ScrollView
-      style={[styles.root, { backgroundColor: colors.background }]}
-      contentContainerStyle={{
-        paddingTop: topPad + 16,
-        paddingBottom: bottomPad + 80,
-        paddingHorizontal: 20,
-      }}
-      showsVerticalScrollIndicator={false}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BLUE} />}
-    >
+    <View style={[styles.root, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <Text style={[styles.eyebrow, { color: BLUE }]}>PROGRESSION</Text>
-      <Text style={[styles.title, { color: colors.foreground }]}>
-        TES <Text style={{ color: ORANGE }}>DÉFIS</Text>
-      </Text>
-
-      {/* Calisthenics banner */}
-      {hasCalisthenics && (
-        <Pressable
-          onPress={() => router.push("/calisthenics")}
-          style={({ pressed }) => [
-            styles.caliBanner,
-            { opacity: pressed ? 0.85 : 1 },
-          ]}
-        >
-          <View style={styles.caliBannerLeft}>
-            <View style={styles.caliIconWrap}>
-              <MaterialCommunityIcons name="arm-flex" size={22} color="#fff" />
-            </View>
-            <View>
-              <Text style={styles.caliBannerTitle}>Défis de callisthénie</Text>
-              <Text style={styles.caliBannerSub}>Découvre les défis sans équipement</Text>
-            </View>
-          </View>
-          <Feather name="chevron-right" size={18} color="rgba(255,255,255,0.7)" />
+      <View style={[styles.header, { paddingTop: topPad + 8, backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+        <Pressable onPress={() => router.back()} hitSlop={12} style={styles.backBtn}>
+          <Feather name="arrow-left" size={22} color={colors.foreground} />
         </Pressable>
-      )}
-
-      {/* Global progress card */}
-      {!loading && (
-        <View style={[styles.globalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
-          <View style={styles.globalRow}>
-            <View style={[styles.trophyWrap, { backgroundColor: "rgba(249,115,22,0.1)" }]}>
-              <MaterialCommunityIcons name="trophy" size={28} color={ORANGE} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.globalTitle, { color: colors.foreground }]}>
-                {totalDone} / {total} défis complétés
-              </Text>
-              <Text style={[styles.globalSub, { color: colors.mutedForeground }]}>
-                Continue à t'entraîner pour débloquer des récompenses
-              </Text>
-            </View>
-          </View>
-          <View style={[styles.progressTrack, { backgroundColor: colors.border, marginTop: 12 }]}>
-            <View style={[
-              styles.progressFill,
-              { width: `${total > 0 ? (totalDone / total) * 100 : 0}%` as any, backgroundColor: ORANGE },
-            ]} />
-          </View>
-        </View>
-      )}
-
-      {loading ? (
-        <View style={styles.loader}>
-          <ActivityIndicator size="large" color={BLUE} />
-        </View>
-      ) : (
-        grouped.map((cat) => (
-          <View key={cat.category} style={styles.category}>
-            <Text style={[styles.catLabel, { color: colors.mutedForeground }]}>
-              {cat.category}
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Défis de callisthénie</Text>
+          {!loading && (
+            <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
+              {totalDone}/{total} complétés
             </Text>
-            {cat.items.map((item) => (
+          )}
+        </View>
+        <View style={[styles.caliIcon, { backgroundColor: "rgba(37,99,235,0.1)" }]}>
+          <MaterialCommunityIcons name="arm-flex" size={22} color={BLUE} />
+        </View>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={{
+          paddingTop: 16,
+          paddingBottom: bottomPad + 80,
+          paddingHorizontal: 20,
+        }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={BLUE} />}
+      >
+        {loading ? (
+          <View style={styles.loader}>
+            <ActivityIndicator size="large" color={BLUE} />
+          </View>
+        ) : challenges.length === 0 ? (
+          <View style={styles.empty}>
+            <MaterialCommunityIcons name="arm-flex-outline" size={48} color={colors.mutedForeground} />
+            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>Aucun défi callisthénie</Text>
+            <Text style={[styles.emptySub, { color: colors.mutedForeground }]}>
+              L'administrateur peut en ajouter depuis le portail admin.
+            </Text>
+          </View>
+        ) : (
+          <>
+            {/* Progress card */}
+            <View style={[styles.globalCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={styles.globalRow}>
+                <View style={[styles.trophyWrap, { backgroundColor: "rgba(37,99,235,0.1)" }]}>
+                  <MaterialCommunityIcons name="arm-flex" size={26} color={BLUE} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.globalTitle, { color: colors.foreground }]}>
+                    {totalDone} / {total} défis complétés
+                  </Text>
+                  <Text style={[styles.globalSub, { color: colors.mutedForeground }]}>
+                    Entraîne-toi sans équipement pour progresser
+                  </Text>
+                </View>
+              </View>
+              <View style={[styles.progressTrack, { backgroundColor: colors.border, marginTop: 12 }]}>
+                <View style={[styles.progressFill, {
+                  width: `${total > 0 ? (totalDone / total) * 100 : 0}%` as any,
+                  backgroundColor: BLUE,
+                }]} />
+              </View>
+            </View>
+
+            {challenges.map((item) => (
               <ChallengeCard key={item.id} item={item} />
             ))}
-          </View>
-        ))
-      )}
-    </ScrollView>
+          </>
+        )}
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  eyebrow: { fontSize: 11, fontWeight: "700", letterSpacing: 1.2, marginBottom: 4 },
-  title: { fontSize: 32, fontWeight: "900", letterSpacing: -1, lineHeight: 36, marginBottom: 18 },
+  header: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    paddingHorizontal: 20, paddingBottom: 14,
+    borderBottomWidth: 1,
+  },
+  backBtn: { padding: 4 },
+  headerTitle: { fontSize: 18, fontWeight: "800" },
+  headerSub: { fontSize: 12, fontWeight: "500", marginTop: 1 },
+  caliIcon: { width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center" },
 
-  caliBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#1d4ed8",
-    borderRadius: 16,
-    padding: 14,
-    marginBottom: 16,
-  },
-  caliBannerLeft: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1 },
-  caliIconWrap: {
-    width: 42, height: 42, borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    alignItems: "center", justifyContent: "center",
-  },
-  caliBannerTitle: { color: "#fff", fontSize: 14, fontWeight: "800" },
-  caliBannerSub: { color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: "500", marginTop: 1 },
+  loader: { paddingTop: 60, alignItems: "center" },
+  empty: { alignItems: "center", paddingTop: 60, gap: 12 },
+  emptyTitle: { fontSize: 18, fontWeight: "800" },
+  emptySub: { fontSize: 13, textAlign: "center" },
 
   globalCard: { borderWidth: 1, borderRadius: 18, padding: 16, marginBottom: 24 },
   globalRow: { flexDirection: "row", alignItems: "center", gap: 14 },
-  trophyWrap: { width: 52, height: 52, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  trophyWrap: { width: 48, height: 48, borderRadius: 13, alignItems: "center", justifyContent: "center" },
   globalTitle: { fontSize: 15, fontWeight: "800", marginBottom: 2 },
   globalSub: { fontSize: 11, fontWeight: "500" },
 
-  loader: { flex: 1, alignItems: "center", justifyContent: "center", paddingTop: 60 },
-  category: { marginBottom: 20 },
-  catLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 1.2, marginBottom: 10 },
-
-  card: {
-    flexDirection: "row", alignItems: "center",
-    borderRadius: 14, padding: 12, gap: 12, marginBottom: 8,
-  },
+  card: { flexDirection: "row", alignItems: "center", borderRadius: 14, padding: 12, gap: 12, marginBottom: 8 },
   cardIcon: { width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center", flexShrink: 0 },
   cardBody: { flex: 1, gap: 4 },
   cardHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },

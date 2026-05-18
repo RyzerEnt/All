@@ -160,7 +160,7 @@ router.get("/sessions", requireAuth, async (req: any, res) => {
 router.post("/sessions", requireAuth, async (req: any, res) => {
   try {
     const { clerkUserId } = req;
-    const { sportName, sportIcon, durationSeconds, points } = req.body;
+    const { sportName, sportIcon, durationSeconds, points, distanceM } = req.body;
     if (!sportName || !durationSeconds || points === undefined) {
       return res.status(400).json({ error: "Missing required fields" });
     }
@@ -193,9 +193,9 @@ router.post("/sessions", requireAuth, async (req: any, res) => {
 
     // Insert session
     const sessionResult = await pool.query(
-      `INSERT INTO ryzer_sessions (clerk_user_id, sport_name, sport_icon, duration_seconds, points)
-       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-      [clerkUserId, sportName, sportIcon ?? "run", durationSeconds, finalPoints]
+      `INSERT INTO ryzer_sessions (clerk_user_id, sport_name, sport_icon, duration_seconds, points, distance_m)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [clerkUserId, sportName, sportIcon ?? "run", durationSeconds, finalPoints, distanceM ?? 0]
     );
 
     // Update total points

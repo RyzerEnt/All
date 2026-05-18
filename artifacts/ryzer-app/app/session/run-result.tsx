@@ -187,6 +187,7 @@ export default function RunResultScreen() {
           sportIcon: sportIcon ?? "run",
           durationSeconds: durNum,
           points: ptNum,
+          distanceM: distance,
         });
         setFinalPoints(result.points);
         setMultiplierApplied(result.multiplierApplied);

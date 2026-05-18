@@ -5,6 +5,7 @@ import roadmapRouter from "./roadmap";
 import waitlistRouter from "./waitlist";
 import featuresRouter from "./features";
 import ryzerRouter from "./ryzer";
+import challengesRouter from "./challenges";
 
 const router: IRouter = Router();
 
@@ -14,5 +15,6 @@ router.use(roadmapRouter);
 router.use(waitlistRouter);
 router.use(featuresRouter);
 router.use(ryzerRouter);
+router.use(challengesRouter);
 
 export default router;

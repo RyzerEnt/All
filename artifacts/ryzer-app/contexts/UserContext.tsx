@@ -19,6 +19,24 @@ export type UserSession = {
   createdAt: string;
 };
 
+export type UserChallenge = {
+  id: number;
+  title: string;
+  description: string;
+  category: string;
+  icon: string;
+  metricType: string;
+  targetValue: number;
+  targetUnit: string;
+  xpReward: number;
+  accent: "blue" | "orange" | "green";
+  isCalisthenics: boolean;
+  sortOrder: number;
+  progress: number;
+  done: boolean;
+  completedAt: string | null;
+};
+
 type UserContextType = {
   profile: UserProfile | null;
   sessions: UserSession[];
@@ -32,7 +50,9 @@ type UserContextType = {
     sportIcon: string;
     durationSeconds: number;
     points: number;
+    distanceM?: number;
   }) => Promise<{ points: number; basePoints: number; multiplierApplied: boolean; currentStreak: number }>;
+  getChallenges: () => Promise<UserChallenge[]>;
 };
 
 const UserContext = createContext<UserContextType | null>(null);
@@ -49,8 +69,6 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   const [sessions, setSessions] = useState<UserSession[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Use a ref so authFetch never needs getToken in its deps — avoids infinite
-  // render loops caused by Clerk returning a new getToken reference each render.
   const getTokenRef = useRef(getToken);
   useEffect(() => { getTokenRef.current = getToken; });
 
@@ -74,7 +92,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         clearTimeout(timer);
       }
     },
-    [] // stable — getToken accessed via ref
+    []
   );
 
   const refreshProfile = useCallback(async () => {
@@ -134,6 +152,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       sportIcon: string;
       durationSeconds: number;
       points: number;
+      distanceM?: number;
     }) => {
       const res = await authFetch("/sessions", {
         method: "POST",
@@ -163,6 +182,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     [authFetch]
   );
 
+  const getChallenges = useCallback(async (): Promise<UserChallenge[]> => {
+    try {
+      const res = await authFetch("/me/challenges");
+      if (res.ok) return res.json();
+    } catch {}
+    return [];
+  }, [authFetch]);
+
   useEffect(() => {
     if (isSignedIn) {
       refreshProfile();
@@ -175,7 +202,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <UserContext.Provider
-      value={{ profile, sessions, isLoading, refreshProfile, refreshSessions, updateProfile, uploadPhoto, addSession }}
+      value={{ profile, sessions, isLoading, refreshProfile, refreshSessions, updateProfile, uploadPhoto, addSession, getChallenges }}
     >
       {children}
     </UserContext.Provider>
