@@ -69,11 +69,6 @@ function ChallengeCard({ item }: { item: UserChallenge }) {
         </View>
       </View>
 
-      {item.done && (
-        <View style={[styles.doneCheck, { backgroundColor: color }]}>
-          <Feather name="check" size={12} color="#fff" />
-        </View>
-      )}
     </View>
   );
 }

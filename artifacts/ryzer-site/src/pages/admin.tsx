@@ -94,7 +94,7 @@ const STATUS_COLORS: Record<string, string> = {
 export default function Admin() {
   const { toast } = useToast();
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("admin_token"));
-  const [tab, setTab] = useState<"roadmap" | "features" | "waitlist" | "defis">("roadmap");
+  const [tab, setTab] = useState<"roadmap" | "features" | "waitlist" | "defis" | "calisthenics">("roadmap");
   const [items, setItems] = useState<RoadmapItem[]>([]);
   const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
   const [waitlistLoading, setWaitlistLoading] = useState(false);
@@ -178,7 +178,7 @@ export default function Admin() {
   useEffect(() => {
     if (token && tab === "waitlist") fetchWaitlist();
     if (token && tab === "features") fetchFeatures();
-    if (token && tab === "defis") fetchChallenges();
+    if (token && (tab === "defis" || tab === "calisthenics")) fetchChallenges();
   }, [token, tab]);
 
   async function fetchChallenges() {
@@ -415,7 +415,11 @@ export default function Admin() {
           <button
             onClick={() => { setTab("defis"); setShowChallengeForm(false); setEditingChallenge(null); }}
             className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === "defis" ? "bg-primary text-white shadow" : "text-white/50 hover:text-white"}`}
-          >Défis ({challenges.length})</button>
+          >Défis ({challenges.filter(c => !c.isCalisthenics).length})</button>
+          <button
+            onClick={() => { setTab("calisthenics"); setShowChallengeForm(false); setEditingChallenge(null); }}
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${tab === "calisthenics" ? "bg-[#1d4ed8] text-white shadow" : "text-white/50 hover:text-white"}`}
+          >💪 Callisthénie ({challenges.filter(c => c.isCalisthenics).length})</button>
         </div>
 
         {tab === "roadmap" && (<>
@@ -653,7 +657,7 @@ export default function Admin() {
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h1 className="text-2xl font-bold text-white">Défis</h1>
-                <p className="text-white/50 text-sm mt-1">{challenges.length} défi{challenges.length !== 1 ? "s" : ""}</p>
+                <p className="text-white/50 text-sm mt-1">{challenges.filter(c => !c.isCalisthenics).length} défi{challenges.filter(c => !c.isCalisthenics).length !== 1 ? "s" : ""}</p>
               </div>
               {!showChallengeForm && (
                 <Button onClick={() => { setEditingChallenge(null); setChallengeForm({ title: "", description: "", category: "POINTS", icon: "trophy", metricType: "points", targetValue: 100, targetUnit: "pts", xpReward: 50, accent: "blue", isCalisthenics: false, sortOrder: challenges.length }); setShowChallengeForm(true); }} className="bg-primary hover:bg-primary/90 text-white rounded-xl">
@@ -745,14 +749,14 @@ export default function Admin() {
 
             {challengesLoading ? (
               <div className="text-center py-20 text-white/30">Chargement...</div>
-            ) : challenges.length === 0 ? (
+            ) : challenges.filter(c => !c.isCalisthenics).length === 0 ? (
               <div className="text-center py-20 text-white/30">
                 <p className="text-lg">Aucun défi pour le moment.</p>
                 <p className="text-sm mt-1">Cliquez sur "+ Ajouter" pour créer le premier.</p>
               </div>
             ) : (() => {
               const CATEGORY_ORDER = ["DISTANCE", "RÉGULARITÉ", "MULTI-SPORTS", "POINTS"];
-              const grouped = challenges.reduce<Record<string, Challenge[]>>((acc, c) => {
+              const grouped = challenges.filter(c => !c.isCalisthenics).reduce<Record<string, Challenge[]>>((acc, c) => {
                 const cat = c.category || "AUTRE";
                 if (!acc[cat]) acc[cat] = [];
                 acc[cat].push(c);
@@ -805,6 +809,110 @@ export default function Admin() {
                 </div>
               );
             })()}
+          </div>
+        )}
+
+        {tab === "calisthenics" && (
+          <div>
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h1 className="text-2xl font-bold text-white">💪 Défis Callisthénie</h1>
+                <p className="text-white/50 text-sm mt-1">{challenges.filter(c => c.isCalisthenics).length} défi{challenges.filter(c => c.isCalisthenics).length !== 1 ? "s" : ""} — cochables manuellement sur l'app</p>
+              </div>
+              {!showChallengeForm && (
+                <Button onClick={() => { setEditingChallenge(null); setChallengeForm({ title: "", description: "", category: "CALLISTHÉNIE", icon: "arm-flex", metricType: "sessions", targetValue: 1, targetUnit: "séance", xpReward: 100, accent: "blue", isCalisthenics: true, sortOrder: challenges.filter(c => c.isCalisthenics).length }); setShowChallengeForm(true); }} className="bg-primary hover:bg-primary/90 text-white rounded-xl">
+                  + Ajouter
+                </Button>
+              )}
+            </div>
+
+            {showChallengeForm && (
+              <div className="bg-card/50 border border-blue-500/20 rounded-2xl p-6 mb-8">
+                <h2 className="text-lg font-semibold text-white mb-6">{editingChallenge ? "Modifier le défi callisthénie" : "Nouveau défi callisthénie"}</h2>
+                <div className="space-y-5">
+                  <div className="grid sm:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-sm text-white/80 mb-1.5 font-medium">Titre</label>
+                      <Input value={challengeForm.title} onChange={e => setChallengeForm(f => ({ ...f, title: e.target.value }))} placeholder="Ex: 10 tractions" className="bg-background/50 border-white/10 text-white focus-visible:ring-primary" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-white/80 mb-1.5 font-medium">Icône (MaterialCommunityIcons)</label>
+                      <Input value={challengeForm.icon} onChange={e => setChallengeForm(f => ({ ...f, icon: e.target.value }))} placeholder="Ex: arm-flex, weight-lifter, dumbbell…" className="bg-background/50 border-white/10 text-white focus-visible:ring-primary" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-white/80 mb-1.5 font-medium">Description</label>
+                    <Input value={challengeForm.description} onChange={e => setChallengeForm(f => ({ ...f, description: e.target.value }))} placeholder="Description du défi" className="bg-background/50 border-white/10 text-white focus-visible:ring-primary" />
+                  </div>
+                  <div className="grid sm:grid-cols-3 gap-5">
+                    <div>
+                      <label className="block text-sm text-white/80 mb-1.5 font-medium">XP récompense</label>
+                      <Input type="number" value={challengeForm.xpReward} onChange={e => setChallengeForm(f => ({ ...f, xpReward: Number(e.target.value) }))} className="bg-background/50 border-white/10 text-white focus-visible:ring-primary" />
+                    </div>
+                    <div>
+                      <label className="block text-sm text-white/80 mb-1.5 font-medium">Couleur</label>
+                      <select value={challengeForm.accent} onChange={e => setChallengeForm(f => ({ ...f, accent: e.target.value }))} className="w-full rounded-lg bg-background/50 border border-white/10 text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                        <option value="blue">Bleu</option>
+                        <option value="orange">Orange</option>
+                        <option value="green">Vert</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-white/80 mb-1.5 font-medium">Ordre d'affichage</label>
+                      <Input type="number" value={challengeForm.sortOrder} onChange={e => setChallengeForm(f => ({ ...f, sortOrder: Number(e.target.value) }))} className="bg-background/50 border-white/10 text-white focus-visible:ring-primary" />
+                    </div>
+                  </div>
+                  <div className="flex gap-3 pt-2">
+                    <Button onClick={saveChallenge} disabled={loading || !challengeForm.title} className="bg-primary hover:bg-primary/90 text-white rounded-xl">
+                      {loading ? "Enregistrement..." : editingChallenge ? "Mettre à jour" : "Ajouter"}
+                    </Button>
+                    <Button variant="outline" onClick={() => { setShowChallengeForm(false); setEditingChallenge(null); setChallengeForm({ title: "", description: "", category: "CALLISTHÉNIE", icon: "arm-flex", metricType: "sessions", targetValue: 1, targetUnit: "séance", xpReward: 100, accent: "blue", isCalisthenics: true, sortOrder: 0 }); }} className="border-white/10 text-white/70 hover:text-white rounded-xl">
+                      Annuler
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {challengesLoading ? (
+              <div className="text-center py-20 text-white/30">Chargement...</div>
+            ) : challenges.filter(c => c.isCalisthenics).length === 0 ? (
+              <div className="text-center py-20 text-white/30">
+                <p className="text-lg">Aucun défi callisthénie pour le moment.</p>
+                <p className="text-sm mt-1">Cliquez sur "+ Ajouter" pour créer le premier.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {challenges.filter(c => c.isCalisthenics).map(c => {
+                  const accentColor = c.accent === "orange" ? "#f97316" : c.accent === "green" ? "#22c55e" : "#2563eb";
+                  return (
+                    <div key={c.id} className="flex items-center gap-4 bg-card/40 border border-white/5 rounded-xl px-5 py-4 hover:bg-white/5 transition-colors">
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: `${accentColor}20` }}>
+                        <span className="text-lg">💪</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-white font-semibold">{c.title}</span>
+                          <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${accentColor}20`, color: accentColor }}>
+                            {c.xpReward} XP
+                          </span>
+                        </div>
+                        {c.description && <p className="text-white/50 text-sm truncate">{c.description}</p>}
+                        <p className="text-white/30 text-xs mt-0.5">icône: {c.icon} · cochable manuellement</p>
+                      </div>
+                      <div className="flex gap-2 flex-shrink-0">
+                        <Button size="sm" variant="outline" onClick={() => startEditChallenge(c)} className="border-white/10 text-white/70 hover:text-white rounded-lg text-xs">
+                          Modifier
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => deleteChallenge(c.id)} className="border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300 rounded-lg text-xs">
+                          Supprimer
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
