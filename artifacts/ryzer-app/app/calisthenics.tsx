@@ -83,10 +83,10 @@ const PROGRAM: DayExercise[] = [
   { exercise: "Circuit final",   icon: "fire",            sets: 3, reps: 0,  unit: "",     tip: "10 PU · 15 squats · 45 s planche · 8 burpees",         color: ORANGE },
 ];
 
-function getProgramIndex(dateStr: string): number {
+function getProgramIndex(dateStr: string, len = 30): number {
   const [y, m, d] = dateStr.split("-").map(Number);
   const days = Math.floor(Date.UTC(y, m - 1, d) / 86400000);
-  return days % PROGRAM.length;
+  return days % len;
 }
 
 function todayStr(): string {
@@ -199,12 +199,14 @@ function Calendar({
   completedDates,
   selectedDate,
   onSelectDate,
+  program,
 }: {
   year: number;
   month: number;
   completedDates: Set<string>;
   selectedDate: string | null;
   onSelectDate: (d: string) => void;
+  program: DayExercise[];
 }) {
   const colors = useColors();
   const today = todayStr();
@@ -238,7 +240,7 @@ function Calendar({
             const isToday = dateStr === today;
             const isDone  = completedDates.has(dateStr);
             const isSelected = dateStr === selectedDate;
-            const prog = PROGRAM[getProgramIndex(dateStr)];
+            const prog = program[getProgramIndex(dateStr, program.length)];
             const isFuture = dateStr > today;
 
             return (
@@ -298,14 +300,16 @@ function DayDetail({
   completed,
   onToggle,
   toggling,
+  program,
 }: {
   dateStr: string;
   completed: boolean;
   onToggle: () => void;
   toggling: boolean;
+  program: DayExercise[];
 }) {
   const colors = useColors();
-  const prog = PROGRAM[getProgramIndex(dateStr)];
+  const prog = program[getProgramIndex(dateStr, program.length)];
   const today = todayStr();
   const isFuture = dateStr > today;
 
@@ -503,13 +507,32 @@ export default function CalisthenicsScreen() {
   );
 
   // ── Initial loads ─────────────────────────────────────────────────────────
-  useEffect(() => { loadDefis(); }, []);
+  useEffect(() => { loadDefis(); loadProgramDef(); }, []);
   useEffect(() => {
     setProgLoading(true);
     loadProgramme(calMonth.year, calMonth.month);
   }, [calMonth]);
 
   const totalChecked = challenges.filter((c) => c.checked).length;
+
+  // ── Programme definition (fetched from API, fallback to hardcoded) ───
+  const [programDef, setProgramDef] = useState<DayExercise[]>(PROGRAM);
+
+  const loadProgramDef = useCallback(async () => {
+    try {
+      const base = getApiBase();
+      const res = await fetch(`${base}/api/calisthenics-program`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length === 30) {
+          setProgramDef(data.map((d: any) => ({
+            exercise: d.exercise, icon: d.icon, sets: d.sets,
+            reps: d.reps, unit: d.unit, tip: d.tip, color: d.color,
+          })));
+        }
+      }
+    } catch {}
+  }, []);
 
   // ── Month navigation ─────────────────────────────────────────────────────
   function prevMonth() {
@@ -687,6 +710,7 @@ export default function CalisthenicsScreen() {
                 completedDates={completedDates}
                 selectedDate={selectedDate}
                 onSelectDate={setSelectedDate}
+                program={programDef}
               />
             </View>
           )}
@@ -710,6 +734,7 @@ export default function CalisthenicsScreen() {
               completed={completedDates.has(selectedDate)}
               onToggle={() => toggleDay(selectedDate)}
               toggling={dayToggling}
+              program={programDef}
             />
           )}
         </ScrollView>

@@ -79,6 +79,17 @@ interface Challenge {
   sortOrder: number;
 }
 
+interface ProgramDay {
+  dayNumber: number;
+  exercise: string;
+  icon: string;
+  sets: number;
+  reps: number;
+  unit: string;
+  tip: string;
+  color: string;
+}
+
 const STATUS_LABELS: Record<string, string> = {
   planned: "Planifie",
   "in-progress": "En cours",
@@ -111,6 +122,13 @@ export default function Admin() {
     title: "", description: "", category: "POINTS", icon: "trophy",
     metricType: "points", targetValue: 100, targetUnit: "pts",
     xpReward: 50, accent: "blue", isCalisthenics: false, sortOrder: 0,
+  });
+  const [programDays, setProgramDays] = useState<ProgramDay[]>([]);
+  const [programDaysLoading, setProgramDaysLoading] = useState(false);
+  const [editingProgramDay, setEditingProgramDay] = useState<ProgramDay | null>(null);
+  const [showProgramDayForm, setShowProgramDayForm] = useState(false);
+  const [programDayForm, setProgramDayForm] = useState({
+    exercise: "", icon: "arm-flex", sets: 3, reps: 10, unit: "reps", tip: "", color: "#2563eb",
   });
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<RoadmapItem | null>(null);
@@ -179,6 +197,7 @@ export default function Admin() {
     if (token && tab === "waitlist") fetchWaitlist();
     if (token && tab === "features") fetchFeatures();
     if (token && (tab === "defis" || tab === "calisthenics")) fetchChallenges();
+    if (token && tab === "calisthenics") fetchProgramDays();
   }, [token, tab]);
 
   async function fetchChallenges() {
@@ -221,6 +240,39 @@ export default function Admin() {
     if (!confirm("Supprimer ce défi ?")) return;
     await fetch(`${API}/challenges/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
     await fetchChallenges();
+  }
+
+  async function fetchProgramDays() {
+    setProgramDaysLoading(true);
+    try {
+      const res = await fetch(`${API}/calisthenics-program`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) setProgramDays(await res.json() as ProgramDay[]);
+    } catch {
+      toast({ title: "Erreur", description: "Impossible de charger le programme", variant: "destructive" });
+    } finally {
+      setProgramDaysLoading(false);
+    }
+  }
+
+  async function saveProgramDay() {
+    if (!editingProgramDay) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`${API}/calisthenics-program/${editingProgramDay.dayNumber}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(programDayForm),
+      });
+      if (!res.ok) throw new Error("Echec");
+      toast({ title: `Jour ${editingProgramDay.dayNumber} mis à jour` });
+      setShowProgramDayForm(false);
+      setEditingProgramDay(null);
+      await fetchProgramDays();
+    } catch {
+      toast({ title: "Erreur", variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
   }
 
   function startEditChallenge(c: Challenge) {
@@ -913,6 +965,111 @@ export default function Admin() {
                 })}
               </div>
             )}
+
+            {/* ── Programme mensuel ───────────────────────────────── */}
+            <div className="mt-10">
+              <div className="flex items-center gap-3 mb-5">
+                <h2 className="text-lg font-bold text-white">📅 Programme mensuel</h2>
+                <span className="text-white/40 text-xs">30 jours en cycle continu</span>
+                <div className="flex-1 h-px bg-white/5" />
+                <button
+                  onClick={fetchProgramDays}
+                  disabled={programDaysLoading}
+                  className="text-xs text-white/50 hover:text-white transition-colors px-3 py-1.5 rounded-lg border border-white/10 hover:border-white/20"
+                >
+                  {programDaysLoading ? "Chargement..." : "↻ Actualiser"}
+                </button>
+              </div>
+
+              {showProgramDayForm && editingProgramDay && (
+                <div className="bg-card/50 border border-blue-500/20 rounded-2xl p-6 mb-5">
+                  <h3 className="text-base font-semibold text-white mb-5">
+                    Jour {editingProgramDay.dayNumber} — Modifier l'exercice
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-white/80 mb-1.5 font-medium">Exercice</label>
+                        <Input value={programDayForm.exercise} onChange={e => setProgramDayForm(f => ({ ...f, exercise: e.target.value }))} placeholder="Ex: Push-ups" className="bg-background/50 border-white/10 text-white focus-visible:ring-primary" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-white/80 mb-1.5 font-medium">Icône (MaterialCommunityIcons)</label>
+                        <Input value={programDayForm.icon} onChange={e => setProgramDayForm(f => ({ ...f, icon: e.target.value }))} placeholder="Ex: arm-flex, run, meditation…" className="bg-background/50 border-white/10 text-white focus-visible:ring-primary" />
+                      </div>
+                    </div>
+                    <div className="grid sm:grid-cols-4 gap-4">
+                      <div>
+                        <label className="block text-sm text-white/80 mb-1.5 font-medium">Séries</label>
+                        <Input type="number" value={programDayForm.sets} onChange={e => setProgramDayForm(f => ({ ...f, sets: Number(e.target.value) }))} className="bg-background/50 border-white/10 text-white focus-visible:ring-primary" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-white/80 mb-1.5 font-medium">Reps / Durée</label>
+                        <Input type="number" value={programDayForm.reps} onChange={e => setProgramDayForm(f => ({ ...f, reps: Number(e.target.value) }))} className="bg-background/50 border-white/10 text-white focus-visible:ring-primary" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-white/80 mb-1.5 font-medium">Unité</label>
+                        <Input value={programDayForm.unit} onChange={e => setProgramDayForm(f => ({ ...f, unit: e.target.value }))} placeholder="reps, sec, min…" className="bg-background/50 border-white/10 text-white focus-visible:ring-primary" />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-white/80 mb-1.5 font-medium">Couleur</label>
+                        <select value={programDayForm.color} onChange={e => setProgramDayForm(f => ({ ...f, color: e.target.value }))} className="w-full rounded-lg bg-background/50 border border-white/10 text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary">
+                          <option value="#2563eb">Bleu</option>
+                          <option value="#22c55e">Vert</option>
+                          <option value="#f97316">Orange</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm text-white/80 mb-1.5 font-medium">Conseil technique</label>
+                      <Input value={programDayForm.tip} onChange={e => setProgramDayForm(f => ({ ...f, tip: e.target.value }))} placeholder="Conseil affiché sur l'app mobile" className="bg-background/50 border-white/10 text-white focus-visible:ring-primary" />
+                    </div>
+                    <div className="flex gap-3 pt-1">
+                      <Button onClick={saveProgramDay} disabled={loading || !programDayForm.exercise} className="bg-primary hover:bg-primary/90 text-white rounded-xl">
+                        {loading ? "Enregistrement..." : "Mettre à jour"}
+                      </Button>
+                      <Button variant="outline" onClick={() => { setShowProgramDayForm(false); setEditingProgramDay(null); }} className="border-white/10 text-white/70 hover:text-white rounded-xl">
+                        Annuler
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {programDaysLoading ? (
+                <div className="text-center py-8 text-white/30 text-sm">Chargement du programme...</div>
+              ) : programDays.length === 0 ? (
+                <div className="text-center py-8 text-white/30 text-sm">
+                  Cliquez sur "↻ Actualiser" pour charger les 30 jours du programme.
+                </div>
+              ) : (
+                <div className="grid sm:grid-cols-2 gap-1.5">
+                  {programDays.map((day) => (
+                    <div key={day.dayNumber} className="flex items-center gap-3 bg-card/40 border border-white/5 rounded-xl px-4 py-3 hover:bg-white/5 transition-colors group">
+                      <span className="text-white/30 text-xs font-bold w-7 flex-shrink-0">J{day.dayNumber}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-white text-sm font-semibold truncate block">{day.exercise}</span>
+                        <span className="text-white/30 text-xs">
+                          {day.sets > 0 ? `${day.sets}×` : ""}{day.reps > 0 ? day.reps : "circuit"} {day.unit}
+                        </span>
+                      </div>
+                      <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: day.color }} />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingProgramDay(day);
+                          setProgramDayForm({ exercise: day.exercise, icon: day.icon, sets: day.sets, reps: day.reps, unit: day.unit, tip: day.tip, color: day.color });
+                          setShowProgramDayForm(true);
+                        }}
+                        className="border-white/10 text-white/60 hover:text-white rounded-lg text-xs opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                      >
+                        Modifier
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 

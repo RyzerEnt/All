@@ -7,6 +7,7 @@ import featuresRouter from "./features";
 import ryzerRouter from "./ryzer";
 import challengesRouter from "./challenges";
 import calisthenicsUserRouter from "./calisthenics-user";
+import calisthenicsProgramRouter from "./calisthenics-program";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(featuresRouter);
 router.use(ryzerRouter);
 router.use(challengesRouter);
 router.use(calisthenicsUserRouter);
+router.use(calisthenicsProgramRouter);
 
 export default router;
