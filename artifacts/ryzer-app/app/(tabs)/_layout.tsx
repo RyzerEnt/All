@@ -103,6 +103,14 @@ function NativeTabLayout() {
         <Icon sf={{ default: "house", selected: "house.fill" }} />
         <Label>Accueil</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="carte">
+        <Icon sf={{ default: "map", selected: "map.fill" }} />
+        <Label>Carte</Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="defi">
+        <Icon sf={{ default: "trophy", selected: "trophy.fill" }} />
+        <Label>Défis</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <Icon sf={{ default: "person", selected: "person.fill" }} />
         <Label>Profil</Label>
@@ -172,6 +180,18 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
+        name="carte"
+        options={{
+          title: "Carte",
+          tabBarIcon: ({ color }) =>
+            isIOS && SymbolView ? (
+              <SymbolView name="map" tintColor={color} size={24} />
+            ) : (
+              <Feather name="map" size={24} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
         name="start"
         options={{
           title: "Session",
@@ -180,6 +200,18 @@ function ClassicTabLayout() {
               <FABButton />
             </View>
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="defi"
+        options={{
+          title: "Défis",
+          tabBarIcon: ({ color }) =>
+            isIOS && SymbolView ? (
+              <SymbolView name="trophy" tintColor={color} size={24} />
+            ) : (
+              <Feather name="award" size={24} color={color} />
+            ),
         }}
       />
       <Tabs.Screen
