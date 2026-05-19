@@ -10,6 +10,7 @@ pool.query(`
   CREATE TABLE IF NOT EXISTS push_tokens (
     clerk_user_id TEXT PRIMARY KEY,
     expo_push_token TEXT NOT NULL,
+    notifications_enabled BOOLEAN NOT NULL DEFAULT true,
     updated_at TIMESTAMPTZ DEFAULT NOW()
   );
   CREATE TABLE IF NOT EXISTS app_settings (
@@ -17,7 +18,12 @@ pool.query(`
     value TEXT NOT NULL,
     updated_at TIMESTAMPTZ DEFAULT NOW()
   );
-`).catch((err) => console.error("[push] Table init error:", err));
+`).then(() =>
+  pool.query(`
+    ALTER TABLE push_tokens
+    ADD COLUMN IF NOT EXISTS notifications_enabled BOOLEAN NOT NULL DEFAULT true;
+  `)
+).catch((err) => console.error("[push] Table init error:", err));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 async function getTodayExercise() {
@@ -31,7 +37,9 @@ async function getTodayExercise() {
 }
 
 export async function broadcastDailyNotification(): Promise<number> {
-  const { rows: tokenRows } = await pool.query(`SELECT expo_push_token FROM push_tokens`);
+  const { rows: tokenRows } = await pool.query(
+    `SELECT expo_push_token FROM push_tokens WHERE notifications_enabled = true`
+  );
   if (tokenRows.length === 0) return 0;
 
   const exercise = await getTodayExercise();
@@ -86,22 +94,23 @@ pool
 
 // ── Routes ────────────────────────────────────────────────────────────────────
 
-// POST /api/push-tokens — user saves their Expo push token
-// Auth: any signed-in user (Clerk Bearer token forwarded by mobile app)
-router.post("/push-tokens", async (req, res) => {
+// Helper: decode Clerk token to get userId
+function clerkUserId(req: { headers: { authorization?: string } }): string | null {
   const authHeader = req.headers.authorization ?? "";
   const clerkToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
-  if (!clerkToken) return res.status(401).json({ error: "Non autorisé" });
-
-  // Decode JWT payload (no verify – Clerk already validated on the client)
-  let userId: string | null = null;
+  if (!clerkToken) return null;
   try {
     const payload = JSON.parse(Buffer.from(clerkToken.split(".")[1], "base64url").toString());
-    userId = payload.sub ?? null;
+    return payload.sub ?? null;
   } catch {
-    return res.status(400).json({ error: "Token invalide" });
+    return null;
   }
-  if (!userId) return res.status(400).json({ error: "sub manquant" });
+}
+
+// POST /api/push-tokens — user saves their Expo push token
+router.post("/push-tokens", async (req, res) => {
+  const userId = clerkUserId(req);
+  if (!userId) return res.status(401).json({ error: "Non autorisé" });
 
   const { token } = req.body;
   if (!token || typeof token !== "string" || !token.startsWith("ExponentPushToken")) {
@@ -117,6 +126,40 @@ router.post("/push-tokens", async (req, res) => {
     );
     res.json({ ok: true });
   } catch (err) {
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// GET /api/push-tokens/settings — get current user's notification preference
+router.get("/push-tokens/settings", async (req, res) => {
+  const userId = clerkUserId(req);
+  if (!userId) return res.status(401).json({ error: "Non autorisé" });
+  try {
+    const { rows } = await pool.query(
+      `SELECT notifications_enabled FROM push_tokens WHERE clerk_user_id = $1`,
+      [userId]
+    );
+    res.json({ notificationsEnabled: rows[0]?.notifications_enabled ?? null, registered: rows.length > 0 });
+  } catch {
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+
+// PUT /api/push-tokens/settings — toggle notifications for current user
+router.put("/push-tokens/settings", async (req, res) => {
+  const userId = clerkUserId(req);
+  if (!userId) return res.status(401).json({ error: "Non autorisé" });
+  const { notificationsEnabled } = req.body;
+  if (typeof notificationsEnabled !== "boolean") {
+    return res.status(400).json({ error: "notificationsEnabled doit être un booléen" });
+  }
+  try {
+    await pool.query(
+      `UPDATE push_tokens SET notifications_enabled = $1, updated_at = NOW() WHERE clerk_user_id = $2`,
+      [notificationsEnabled, userId]
+    );
+    res.json({ ok: true, notificationsEnabled });
+  } catch {
     res.status(500).json({ error: "Erreur serveur" });
   }
 });

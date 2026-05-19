@@ -1,13 +1,12 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View, Text, StyleSheet, ScrollView,
-  Pressable, Platform, Image, ActivityIndicator,
+  Pressable, Platform, Image, ActivityIndicator, Switch,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@clerk/expo";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback } from "react";
 import { useColors } from "@/hooks/useColors";
 import { useUser } from "@/contexts/UserContext";
 import { FlameIcon } from "@/components/FlameIcon";
@@ -23,6 +22,11 @@ const STAT_ICONS: { icon: MCIcon; color: string }[] = [
   { icon: "trophy-outline", color: BLUE },
 ];
 
+function getApiBase() {
+  const domain = process.env.EXPO_PUBLIC_DOMAIN;
+  return domain ? `https://${domain}` : "";
+}
+
 export default function ProfileScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -30,8 +34,49 @@ export default function ProfileScreen() {
   const topPad = isWeb ? 67 : insets.top;
   const bottomPad = isWeb ? 34 : insets.bottom;
 
-  const { signOut } = useAuth();
+  const { signOut, getToken } = useAuth();
   const { profile, sessions, isLoading, refreshProfile, refreshSessions } = useUser();
+
+  // Notification preference
+  const [notifEnabled, setNotifEnabled] = useState<boolean | null>(null);
+  const [notifRegistered, setNotifRegistered] = useState(false);
+  const [togglingNotif, setTogglingNotif] = useState(false);
+
+  const loadNotifSettings = useCallback(async () => {
+    if (Platform.OS === "web") return;
+    try {
+      const token = await getToken();
+      if (!token) return;
+      const res = await fetch(`${getApiBase()}/api/push-tokens/settings`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifRegistered(data.registered);
+        if (data.notificationsEnabled !== null) setNotifEnabled(data.notificationsEnabled);
+      }
+    } catch {}
+  }, [getToken]);
+
+  const toggleNotif = useCallback(async (value: boolean) => {
+    setNotifEnabled(value);
+    setTogglingNotif(true);
+    try {
+      const token = await getToken();
+      if (!token) return;
+      await fetch(`${getApiBase()}/api/push-tokens/settings`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ notificationsEnabled: value }),
+      });
+    } catch {
+      setNotifEnabled(!value); // revert on error
+    } finally {
+      setTogglingNotif(false);
+    }
+  }, [getToken]);
+
+  useEffect(() => { loadNotifSettings(); }, [loadNotifSettings]);
 
   useFocusEffect(
     useCallback(() => {
@@ -174,6 +219,34 @@ export default function ProfileScreen() {
           ))}
         </View>
 
+        {/* PRÉFÉRENCES */}
+        {Platform.OS !== "web" && notifRegistered && notifEnabled !== null && (
+          <>
+            <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>PRÉFÉRENCES</Text>
+            <View style={[styles.prefsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={styles.prefRow}>
+                <View style={[styles.prefIconWrap, { backgroundColor: "rgba(37,99,235,0.10)" }]}>
+                  <MaterialCommunityIcons name="bell-outline" size={18} color={BLUE} />
+                </View>
+                <View style={styles.prefInfo}>
+                  <Text style={[styles.prefLabel, { color: colors.foreground }]}>Rappels quotidiens</Text>
+                  <Text style={[styles.prefSub, { color: colors.mutedForeground }]}>
+                    Exercice du jour envoyé chaque matin
+                  </Text>
+                </View>
+                <Switch
+                  value={notifEnabled}
+                  onValueChange={toggleNotif}
+                  disabled={togglingNotif}
+                  trackColor={{ false: colors.border, true: "rgba(37,99,235,0.45)" }}
+                  thumbColor={notifEnabled ? BLUE : colors.mutedForeground}
+                  ios_backgroundColor={colors.border}
+                />
+              </View>
+            </View>
+          </>
+        )}
+
         {/* DERNIÈRES SESSIONS */}
         <Text style={[styles.sectionLabel, { color: colors.mutedForeground }]}>DERNIÈRES SESSIONS</Text>
         {sessions.length === 0 ? (
@@ -273,6 +346,20 @@ const styles = StyleSheet.create({
     alignItems: "center", gap: 8, marginBottom: 20,
   },
   emptyText: { fontSize: 13, fontWeight: "500" },
+  prefsCard: {
+    borderWidth: 1, borderRadius: 16, overflow: "hidden", marginBottom: 20,
+  },
+  prefRow: {
+    flexDirection: "row", alignItems: "center",
+    paddingHorizontal: 16, paddingVertical: 14, gap: 12,
+  },
+  prefIconWrap: {
+    width: 38, height: 38, borderRadius: 10,
+    alignItems: "center", justifyContent: "center",
+  },
+  prefInfo: { flex: 1, gap: 2 },
+  prefLabel: { fontSize: 14, fontWeight: "700" },
+  prefSub: { fontSize: 11, fontWeight: "500" },
   sessionsCard: {
     borderWidth: 1, borderRadius: 16, overflow: "hidden", marginBottom: 20,
   },
