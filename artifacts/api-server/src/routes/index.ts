@@ -8,6 +8,7 @@ import ryzerRouter from "./ryzer";
 import challengesRouter from "./challenges";
 import calisthenicsUserRouter from "./calisthenics-user";
 import calisthenicsProgramRouter from "./calisthenics-program";
+import pushNotificationsRouter from "./push-notifications";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(ryzerRouter);
 router.use(challengesRouter);
 router.use(calisthenicsUserRouter);
 router.use(calisthenicsProgramRouter);
+router.use(pushNotificationsRouter);
 
 export default router;

@@ -5,11 +5,12 @@ import {
   Inter_700Bold,
   useFonts,
 } from "@expo-google-fonts/inter";
-import { ClerkProvider } from "@clerk/expo";
+import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache as nativeTokenCache } from "@clerk/expo/token-cache";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
+import * as Notifications from "expo-notifications";
 import React, { useEffect, useRef } from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -24,8 +25,67 @@ const queryClient = new QueryClient();
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 const proxyUrl = process.env.EXPO_PUBLIC_CLERK_PROXY_URL || undefined;
-// SecureStore-based tokenCache only works on native; on web Clerk uses cookies
 const tokenCache = Platform.OS === "web" ? undefined : nativeTokenCache;
+
+// Configure how notifications are shown when the app is in the foreground
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowAlert: true,
+  }),
+});
+
+function getApiBase() {
+  const domain = process.env.EXPO_PUBLIC_DOMAIN;
+  return domain ? `https://${domain}` : "";
+}
+
+// Registers the device's Expo push token with our API (once per sign-in)
+function PushNotificationManager() {
+  const { isSignedIn, getToken } = useAuth();
+  const registered = useRef(false);
+
+  useEffect(() => {
+    if (!isSignedIn || registered.current || Platform.OS === "web") return;
+
+    (async () => {
+      try {
+        const { status: existingStatus } = await Notifications.getPermissionsAsync();
+        let finalStatus = existingStatus;
+        if (existingStatus !== "granted") {
+          const { status } = await Notifications.requestPermissionsAsync();
+          finalStatus = status;
+        }
+        if (finalStatus !== "granted") return;
+
+        const { data: expoPushToken } = await Notifications.getExpoPushTokenAsync();
+        const clerkToken = await getToken();
+        if (!clerkToken || !expoPushToken) return;
+
+        const base = getApiBase();
+        await fetch(`${base}/api/push-tokens`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${clerkToken}`,
+          },
+          body: JSON.stringify({ token: expoPushToken }),
+        });
+
+        registered.current = true;
+        console.log("[push] Token registered:", expoPushToken);
+      } catch (err) {
+        // Silently fail in simulator / web
+        console.log("[push] Could not register push token:", err);
+      }
+    })();
+  }, [isSignedIn]);
+
+  return null;
+}
 
 function RootLayoutNav() {
   return (
@@ -48,7 +108,6 @@ export default function RootLayout() {
     Inter_700Bold,
   });
 
-  // Safety timeout: hide splash after 4s even if fonts are still loading
   const splashHidden = useRef(false);
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -67,17 +126,16 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  // Don't block render — show content even if fonts didn't load yet (after timeout)
   if (!fontsLoaded && !fontError) return null;
 
   return (
     <SafeAreaProvider>
       <ErrorBoundary>
-        {/* ClerkLoaded removed — AuthAndSetupGuard handles loading state with timeout */}
         <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache} proxyUrl={proxyUrl}>
           <QueryClientProvider client={queryClient}>
             <UserProvider>
               <GestureHandlerRootView style={{ flex: 1 }}>
+                <PushNotificationManager />
                 <RootLayoutNav />
               </GestureHandlerRootView>
             </UserProvider>

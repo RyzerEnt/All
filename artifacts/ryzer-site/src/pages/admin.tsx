@@ -130,6 +130,10 @@ export default function Admin() {
   const [programDayForm, setProgramDayForm] = useState({
     exercise: "", icon: "arm-flex", sets: 3, reps: 10, unit: "reps", tip: "", color: "#2563eb",
   });
+  const [notifSettings, setNotifSettings] = useState<{ notificationTime: string; tokenCount: number } | null>(null);
+  const [notifTime, setNotifTime] = useState("08:00");
+  const [notifSettingsLoading, setNotifSettingsLoading] = useState(false);
+  const [sendingNotif, setSendingNotif] = useState(false);
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState<RoadmapItem | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -197,7 +201,7 @@ export default function Admin() {
     if (token && tab === "waitlist") fetchWaitlist();
     if (token && tab === "features") fetchFeatures();
     if (token && (tab === "defis" || tab === "calisthenics")) fetchChallenges();
-    if (token && tab === "calisthenics") fetchProgramDays();
+    if (token && tab === "calisthenics") { fetchProgramDays(); fetchNotifSettings(); }
   }, [token, tab]);
 
   async function fetchChallenges() {
@@ -272,6 +276,52 @@ export default function Admin() {
       toast({ title: "Erreur", variant: "destructive" });
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function fetchNotifSettings() {
+    try {
+      const res = await fetch(`${API}/admin/notification-settings`, { headers: { Authorization: `Bearer ${token}` } });
+      if (res.ok) {
+        const data = await res.json() as { notificationTime: string; tokenCount: number };
+        setNotifSettings(data);
+        setNotifTime(data.notificationTime);
+      }
+    } catch {}
+  }
+
+  async function saveNotifSettings() {
+    setNotifSettingsLoading(true);
+    try {
+      const res = await fetch(`${API}/admin/notification-settings`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ notificationTime: notifTime }),
+      });
+      if (!res.ok) throw new Error("Echec");
+      toast({ title: `Heure d'envoi mise à jour : ${notifTime}` });
+      await fetchNotifSettings();
+    } catch {
+      toast({ title: "Erreur", variant: "destructive" });
+    } finally {
+      setNotifSettingsLoading(false);
+    }
+  }
+
+  async function sendNotifNow() {
+    setSendingNotif(true);
+    try {
+      const res = await fetch(`${API}/admin/notifications/send`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Echec");
+      const { sent } = await res.json() as { sent: number };
+      toast({ title: `Notification envoyée à ${sent} appareil${sent > 1 ? "s" : ""}` });
+    } catch {
+      toast({ title: "Erreur lors de l'envoi", variant: "destructive" });
+    } finally {
+      setSendingNotif(false);
     }
   }
 
@@ -1069,6 +1119,58 @@ export default function Admin() {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* ── Notifications push ───────────────────────────────── */}
+            <div className="mt-10">
+              <div className="flex items-center gap-3 mb-5">
+                <h2 className="text-lg font-bold text-white">🔔 Notifications push</h2>
+                <div className="flex-1 h-px bg-white/5" />
+                {notifSettings && (
+                  <span className="text-xs text-white/40 bg-white/5 px-2.5 py-1 rounded-full">
+                    {notifSettings.tokenCount} appareil{notifSettings.tokenCount !== 1 ? "s" : ""} enregistré{notifSettings.tokenCount !== 1 ? "s" : ""}
+                  </span>
+                )}
+              </div>
+
+              <div className="bg-card/40 border border-white/8 rounded-2xl p-5 space-y-5">
+                {/* Time setting */}
+                <div>
+                  <label className="block text-sm text-white/80 mb-2 font-medium">Heure d'envoi quotidien</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="time"
+                      value={notifTime}
+                      onChange={e => setNotifTime(e.target.value)}
+                      className="rounded-lg bg-background/50 border border-white/10 text-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary w-36"
+                    />
+                    <Button
+                      onClick={saveNotifSettings}
+                      disabled={notifSettingsLoading}
+                      className="bg-primary hover:bg-primary/90 text-white rounded-xl"
+                    >
+                      {notifSettingsLoading ? "Enregistrement..." : "Enregistrer"}
+                    </Button>
+                  </div>
+                  <p className="text-xs text-white/30 mt-1.5">Fuseau horaire : Europe/Paris — l'exercice du jour est envoyé automatiquement</p>
+                </div>
+
+                {/* Send now */}
+                <div className="flex items-center gap-4 pt-1 border-t border-white/5">
+                  <div className="flex-1">
+                    <p className="text-sm text-white font-medium">Envoyer maintenant</p>
+                    <p className="text-xs text-white/40">Broadcast immédiat de l'exercice du jour à tous les appareils</p>
+                  </div>
+                  <Button
+                    onClick={sendNotifNow}
+                    disabled={sendingNotif}
+                    variant="outline"
+                    className="border-orange-500/40 text-orange-400 hover:bg-orange-500/10 rounded-xl flex-shrink-0"
+                  >
+                    {sendingNotif ? "Envoi en cours..." : "🚀 Envoyer"}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         )}
